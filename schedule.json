@@ -1,0 +1,186 @@
+{
+  "event": {
+    "name": "Miglio d'Oro - 3ª Edizione",
+    "year": 2026,
+    "timezone": "Europe/Rome",
+    "leadTimes": [5, 2]
+  },
+  "throttle": {
+    "minDelayMs": 2000,
+    "maxDelayMs": 5000
+  },
+  "groups": [
+    { "id": 1, "name": "Gruppo 1", "whatsappId": "REPLACE_WITH_GROUP_ID_1@g.us" },
+    { "id": 2, "name": "Gruppo 2", "whatsappId": "REPLACE_WITH_GROUP_ID_2@g.us" },
+    { "id": 3, "name": "Gruppo 3", "whatsappId": "REPLACE_WITH_GROUP_ID_3@g.us" },
+    { "id": 4, "name": "Gruppo 4", "whatsappId": "REPLACE_WITH_GROUP_ID_4@g.us" },
+    { "id": 5, "name": "Gruppo 5", "whatsappId": "REPLACE_WITH_GROUP_ID_5@g.us" }
+  ],
+  "adminChatId": "REPLACE_WITH_YOUR_PERSONAL_NUMBER@s.whatsapp.net",
+  "globalAnnouncements": [
+    { "time": "15:30", "text": "🍹 Hey runner! Dalle *15:30* vi aspetto al *Bar ai Ochi* per un aperitivo di riscaldamento. 3ª edizione, si parte alle 16:30!" },
+    { "time": "16:15", "text": "⚡ Mancano *15 minuti* al via del Miglio d'Oro! Allacciate le scarpe, fatevi trovare al Bar ai Ochi. 13 tappe, 5 gruppi, 8 ore di pura gloria. 🥇" },
+    { "time": "16:25", "text": "⏰ Mancano *5 minuti*! Fate l'ultimo brindisi prima del via, alle 16:30 si comincia." },
+    { "time": "16:30", "text": "🚀 *Il Miglio d'Oro è iniziato!* Buon cammino a tutti e che vinca il gruppo più festaiolo 🍻" }
+  ],
+  "stops": [
+    {
+      "number": 1,
+      "name": "Bar ai Ochi",
+      "isStart": true,
+      "note": null,
+      "groupSchedule": [
+        { "group": 1, "arrival": "16:30", "departure": "16:50" },
+        { "group": 2, "arrival": "16:30", "departure": "17:08" },
+        { "group": 3, "arrival": "16:30", "departure": "17:26" },
+        { "group": 4, "arrival": "16:30", "departure": "17:44" },
+        { "group": 5, "arrival": "16:30", "departure": "18:02" }
+      ]
+    },
+    {
+      "number": 2,
+      "name": "Periferia",
+      "note": null,
+      "groupSchedule": [
+        { "group": 1, "arrival": "17:10", "departure": "17:30" },
+        { "group": 2, "arrival": "17:28", "departure": "17:48" },
+        { "group": 3, "arrival": "17:46", "departure": "18:06" },
+        { "group": 4, "arrival": "18:04", "departure": "18:24" },
+        { "group": 5, "arrival": "18:22", "departure": "18:42" }
+      ]
+    },
+    {
+      "number": 3,
+      "name": "Bar dai Rosa",
+      "note": null,
+      "groupSchedule": [
+        { "group": 1, "arrival": "17:35", "departure": "17:55" },
+        { "group": 2, "arrival": "17:53", "departure": "18:19" },
+        { "group": 3, "arrival": "18:11", "departure": "18:43" },
+        { "group": 4, "arrival": "18:29", "departure": "19:07" },
+        { "group": 5, "arrival": "18:47", "departure": "19:31" }
+      ]
+    },
+    {
+      "number": 4,
+      "name": "La Fornace",
+      "note": null,
+      "groupSchedule": [
+        { "group": 1, "arrival": "18:00", "departure": "18:20" },
+        { "group": 2, "arrival": "18:24", "departure": "18:44" },
+        { "group": 3, "arrival": "18:48", "departure": "19:08" },
+        { "group": 4, "arrival": "19:12", "departure": "19:32" },
+        { "group": 5, "arrival": "19:36", "departure": "19:56" }
+      ]
+    },
+    {
+      "number": 5,
+      "name": "Bar Sorriso",
+      "note": null,
+      "groupSchedule": [
+        { "group": 1, "arrival": "18:50", "departure": "19:10" },
+        { "group": 2, "arrival": "19:14", "departure": "19:34" },
+        { "group": 3, "arrival": "19:38", "departure": "19:58" },
+        { "group": 4, "arrival": "20:02", "departure": "20:22" },
+        { "group": 5, "arrival": "20:26", "departure": "20:46" }
+      ]
+    },
+    {
+      "number": 6,
+      "name": "Il Vino Quotidiano",
+      "note": null,
+      "groupSchedule": [
+        { "group": 1, "arrival": "19:20", "departure": "19:40" },
+        { "group": 2, "arrival": "19:44", "departure": "20:04" },
+        { "group": 3, "arrival": "20:08", "departure": "20:28" },
+        { "group": 4, "arrival": "20:32", "departure": "20:52" },
+        { "group": 5, "arrival": "20:56", "departure": "21:16" }
+      ]
+    },
+    {
+      "number": 7,
+      "name": "Pizzeria ai Barbari",
+      "note": null,
+      "groupSchedule": [
+        { "group": 1, "arrival": "19:41", "departure": "20:01" },
+        { "group": 2, "arrival": "20:05", "departure": "20:25" },
+        { "group": 3, "arrival": "20:29", "departure": "20:49" },
+        { "group": 4, "arrival": "20:53", "departure": "21:13" },
+        { "group": 5, "arrival": "21:17", "departure": "21:37" }
+      ]
+    },
+    {
+      "number": 8,
+      "name": "Vanity",
+      "note": null,
+      "groupSchedule": [
+        { "group": 1, "arrival": "20:11", "departure": "20:31" },
+        { "group": 2, "arrival": "20:35", "departure": "20:55" },
+        { "group": 3, "arrival": "20:59", "departure": "21:19" },
+        { "group": 4, "arrival": "21:23", "departure": "21:43" },
+        { "group": 5, "arrival": "21:47", "departure": "22:07" }
+      ]
+    },
+    {
+      "number": 9,
+      "name": "Fortuna Club",
+      "note": null,
+      "groupSchedule": [
+        { "group": 1, "arrival": "20:37", "departure": "20:57" },
+        { "group": 2, "arrival": "21:01", "departure": "21:21" },
+        { "group": 3, "arrival": "21:25", "departure": "21:45" },
+        { "group": 4, "arrival": "21:49", "departure": "22:09" },
+        { "group": 5, "arrival": "22:13", "departure": "22:33" }
+      ]
+    },
+    {
+      "number": 10,
+      "name": "Pergola",
+      "note": null,
+      "groupSchedule": [
+        { "group": 1, "arrival": "20:57", "departure": "21:17" },
+        { "group": 2, "arrival": "21:21", "departure": "21:41" },
+        { "group": 3, "arrival": "21:45", "departure": "22:05" },
+        { "group": 4, "arrival": "22:09", "departure": "22:29" },
+        { "group": 5, "arrival": "22:33", "departure": "22:53" }
+      ]
+    },
+    {
+      "number": 11,
+      "name": "La Corte",
+      "note": null,
+      "groupSchedule": [
+        { "group": 1, "arrival": "21:20", "departure": "21:40" },
+        { "group": 2, "arrival": "21:44", "departure": "22:04" },
+        { "group": 3, "arrival": "22:08", "departure": "22:28" },
+        { "group": 4, "arrival": "22:32", "departure": "22:52" },
+        { "group": 5, "arrival": "22:56", "departure": "23:16" }
+      ]
+    },
+    {
+      "number": 12,
+      "name": "Wu",
+      "note": null,
+      "groupSchedule": [
+        { "group": 1, "arrival": "21:42", "departure": "22:02" },
+        { "group": 2, "arrival": "22:06", "departure": "22:26" },
+        { "group": 3, "arrival": "22:30", "departure": "22:50" },
+        { "group": 4, "arrival": "22:54", "departure": "23:14" },
+        { "group": 5, "arrival": "23:18", "departure": "23:38" }
+      ]
+    },
+    {
+      "number": 13,
+      "name": "Bar Peter Pan",
+      "isFinish": true,
+      "note": null,
+      "groupSchedule": [
+        { "group": 1, "arrival": "22:02", "departure": "22:22" },
+        { "group": 2, "arrival": "22:26", "departure": "22:46" },
+        { "group": 3, "arrival": "22:50", "departure": "23:10" },
+        { "group": 4, "arrival": "23:14", "departure": "23:34" },
+        { "group": 5, "arrival": "23:38", "departure": "23:58" }
+      ]
+    }
+  ]
+}

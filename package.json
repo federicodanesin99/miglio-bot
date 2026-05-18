@@ -1,0 +1,23 @@
+{
+  "name": "miglio-bot-v2",
+  "version": "1.0.0",
+  "description": "Bot WhatsApp Miglio d'Oro 2026 - versione semplificata con Baileys",
+  "main": "index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "setup": "node index.js setup",
+    "groups": "node index.js groups",
+    "validate": "node index.js validate",
+    "schedule": "node index.js schedule",
+    "start": "node index.js run"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.18",
+    "node-cron": "^3.0.3",
+    "qrcode-terminal": "^0.12.0",
+    "pino": "^9.5.0"
+  }
+}
