@@ -15,7 +15,6 @@
 //   node index.js validate
 //   node index.js schedule    (rileggi i messaggi)
 //   node index.js run         (parti, lascialo aperto)
-
 const fs = require('fs');
 const path = require('path');
 const cron = require('node-cron');
@@ -31,6 +30,7 @@ const {
 const AUTH_DIR = path.join(__dirname, 'auth');
 const STATE_FILE = path.join(__dirname, 'state.json');
 const CONFIG_FILE = path.join(__dirname, 'schedule.json');
+const LOG_DIR = path.join(__dirname, 'logs');
 
 // Logger silenzioso per Baileys (i suoi log sono molto verbosi)
 const baileysLogger = pino({ level: 'silent' });
@@ -38,12 +38,35 @@ const baileysLogger = pino({ level: 'silent' });
 // Sleep helper
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Log strutturato semplice
+// File log (attivato solo da cmdRun via initFileLog)
+let logStream = null;
+let logFilePath = null;
+
+function initFileLog() {
+  if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
+  const date = new Date().toISOString().slice(0, 10);
+  logFilePath = path.join(LOG_DIR, `bot-${date}.log`);
+  logStream = fs.createWriteStream(logFilePath, { flags: 'a' });
+  logStream.write(`\n===== ${new Date().toISOString()} bot start (pid ${process.pid}) =====\n`);
+  return logFilePath;
+}
+
+function writeFileLog(level, args) {
+  if (!logStream) return;
+  const parts = args.map((a) => {
+    if (a instanceof Error) return a.stack || a.message;
+    if (typeof a === 'string') return a;
+    try { return JSON.stringify(a); } catch { return String(a); }
+  });
+  logStream.write(`${new Date().toISOString()} ${level} ${parts.join(' ')}\n`);
+}
+
+// Log strutturato semplice (stdout + file se inizializzato)
 const log = {
-  info: (...a) => console.log(new Date().toLocaleTimeString('it-IT'), 'INFO ', ...a),
-  warn: (...a) => console.log(new Date().toLocaleTimeString('it-IT'), 'WARN ', ...a),
-  error: (...a) => console.log(new Date().toLocaleTimeString('it-IT'), 'ERROR', ...a),
-  ok: (...a) => console.log(new Date().toLocaleTimeString('it-IT'), '✓    ', ...a),
+  info: (...a) => { console.log(new Date().toLocaleTimeString('it-IT'), 'INFO ', ...a); writeFileLog('INFO ', a); },
+  warn: (...a) => { console.log(new Date().toLocaleTimeString('it-IT'), 'WARN ', ...a); writeFileLog('WARN ', a); },
+  error: (...a) => { console.error(new Date().toLocaleTimeString('it-IT'), 'ERROR', ...a); writeFileLog('ERROR', a); },
+  ok: (...a) => { console.log(new Date().toLocaleTimeString('it-IT'), '✓    ', ...a); writeFileLog('OK   ', a); },
 };
 
 // ============================================================
@@ -70,6 +93,12 @@ function loadConfig() {
       }
     }
   }
+
+  // Applica il fuso orario dichiarato in config a tutte le successive operazioni sulle Date
+  if (cfg.event?.timezone) {
+    process.env.TZ = cfg.event.timezone;
+  }
+
   return cfg;
 }
 
@@ -264,88 +293,144 @@ function markSent(state, id) {
 // BAILEYS CONNECTION
 // ============================================================
 
-async function connect({ printQr = false, onReady = null } = {}) {
-  const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+// createSession crea un "session holder" il cui campo .sock viene SOSTITUITO
+// dopo ogni riconnessione. I chiamanti (sendThrottled, heartbeat, ecc.)
+// devono leggere session.sock al momento dell'uso, NON salvarne una copia.
+async function createSession({ printQr = false, onReady = null, onReconnect = null } = {}) {
+  const session = {
+    sock: null,
+    closed: false,
+    reconnectAttempt: 0,
+    end: async () => {
+      session.closed = true;
+      if (session.sock) {
+        try { session.sock.ev.removeAllListeners(); } catch {}
+        try { await session.sock.end(); } catch {}
+      }
+    },
+  };
+
+  const { state: authState, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
   const { version } = await fetchLatestBaileysVersion();
-  log.info(`Connetto a WhatsApp (Baileys v${version.join('.')})…`);
 
-  const sock = makeWASocket({
-    version,
-    auth: state,
-    logger: baileysLogger,
-    printQRInTerminal: false, // gestiamo noi il QR
-    markOnlineOnConnect: false, // più discreti
-  });
+  async function openSocket(isReconnect) {
+    if (session.closed) throw new Error('Session closed');
 
-  return new Promise((resolve, reject) => {
-    let resolved = false;
-    let qrShown = false;
+    // Dismetti il socket precedente, se presente
+    if (session.sock) {
+      const prev = session.sock;
+      session.sock = null;
+      try { prev.ev.removeAllListeners(); } catch {}
+      try { await prev.end(); } catch {}
+      log.info('🔌 Socket precedente chiuso e dereferenziato');
+    }
 
-    sock.ev.on('creds.update', saveCreds);
+    if (isReconnect) {
+      session.reconnectAttempt++;
+      log.info(`🔄 Riconnessione #${session.reconnectAttempt} a WhatsApp (Baileys v${version.join('.')})…`);
+    } else {
+      log.info(`Connetto a WhatsApp (Baileys v${version.join('.')})…`);
+    }
 
-    sock.ev.on('connection.update', async (update) => {
-      const { connection, lastDisconnect, qr } = update;
-
-      if (qr) {
-        if (printQr) {
-          if (!qrShown) {
-            log.info('🔵 Scansiona il QR (WhatsApp → Impostazioni → Dispositivi collegati):');
-            qrShown = true;
-          }
-          qrcodeTerminal.generate(qr, { small: true });
-        } else {
-          log.error('Sessione non valida: serve riscansionare QR.');
-          log.error('Esegui: node index.js setup');
-          if (!resolved) {
-            resolved = true;
-            reject(new Error('No valid session - run setup'));
-          }
-        }
-      }
-
-      if (connection === 'open') {
-        log.ok('Connesso a WhatsApp');
-        if (onReady) await onReady(sock);
-        if (!resolved) {
-          resolved = true;
-          resolve(sock);
-        }
-      }
-
-      if (connection === 'close') {
-        const reason = lastDisconnect?.error?.output?.statusCode;
-        const reasonName = Object.keys(DisconnectReason).find(
-          (k) => DisconnectReason[k] === reason
-        );
-        log.warn(`Disconnesso (${reasonName || reason}): ${lastDisconnect?.error?.message || ''}`);
-
-        if (reason === DisconnectReason.loggedOut) {
-          log.error('Logout dal telefono. Cancella ./auth e rifai setup.');
-          if (!resolved) {
-            resolved = true;
-            reject(new Error('Logged out'));
-          } else {
-            process.exit(1);
-          }
-        } else if (resolved) {
-          // Riconnessione automatica se eravamo già up
-          log.info('Tento riconnessione tra 5s…');
-          setTimeout(() => {
-            connect({ printQr: false, onReady }).catch((e) => {
-              log.error('Riconnessione fallita:', e.message);
-              process.exit(1);
-            });
-          }, 5000);
-        } else {
-          // Disconnessione prima di essere pronto
-          if (!resolved) {
-            resolved = true;
-            reject(lastDisconnect?.error || new Error('Connection closed'));
-          }
-        }
-      }
+    const sock = makeWASocket({
+      version,
+      auth: authState,
+      logger: baileysLogger,
+      printQRInTerminal: false,
+      markOnlineOnConnect: false,
     });
-  });
+    session.sock = sock;
+
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      let qrShown = false;
+
+      sock.ev.on('creds.update', saveCreds);
+
+      sock.ev.on('connection.update', async (update) => {
+        const { connection, lastDisconnect, qr } = update;
+
+        if (qr) {
+          if (printQr) {
+            if (!qrShown) {
+              log.info('🔵 Scansiona il QR (WhatsApp → Impostazioni → Dispositivi collegati):');
+              qrShown = true;
+            }
+            qrcodeTerminal.generate(qr, { small: true });
+          } else {
+            log.error('Sessione non valida: serve riscansionare QR.');
+            log.error('Esegui: node index.js setup');
+            if (!settled) { settled = true; reject(new Error('No valid session - run setup')); }
+          }
+        }
+
+        if (connection === 'open') {
+          if (isReconnect) {
+            log.ok(`🟢 Riconnesso a WhatsApp (tentativo #${session.reconnectAttempt})`);
+            session.reconnectAttempt = 0;
+            if (onReconnect) {
+              try { await onReconnect(sock); }
+              catch (e) { log.error('onReconnect ha sollevato:', e.message); }
+            }
+          } else {
+            log.ok('Connesso a WhatsApp');
+            if (onReady) {
+              try { await onReady(sock); }
+              catch (e) { log.error('onReady ha sollevato:', e.message); }
+            }
+          }
+          if (!settled) { settled = true; resolve(sock); }
+        }
+
+        if (connection === 'close') {
+          const reason = lastDisconnect?.error?.output?.statusCode;
+          const reasonName = Object.keys(DisconnectReason).find(
+            (k) => DisconnectReason[k] === reason
+          );
+          const reasonLabel = reasonName || reason || 'unknown';
+          log.warn(`⚠️  Disconnesso (${reasonLabel}): ${lastDisconnect?.error?.message || ''}`);
+
+          if (session.closed) return;
+
+          if (reason === DisconnectReason.loggedOut) {
+            log.error('Logout dal telefono. Cancella ./auth e rifai setup.');
+            session.closed = true;
+            if (!settled) { settled = true; reject(new Error('Logged out')); }
+            else process.exit(1);
+            return;
+          }
+
+          // Riconnessione automatica per tutti gli altri casi.
+          // Backoff: 2s per restartRequired (primo restart post-pairing/update),
+          // altrimenti exponential capped (5s, 10s, 20s, 40s, max 60s).
+          let delayMs;
+          if (reason === DisconnectReason.restartRequired) {
+            delayMs = 2000;
+          } else {
+            const attempt = Math.min(session.reconnectAttempt, 5);
+            delayMs = Math.min(60000, 5000 * Math.pow(2, attempt));
+          }
+          log.info(`🔄 Riconnessione automatica tra ${(delayMs / 1000).toFixed(0)}s (motivo: ${reasonLabel})…`);
+
+          setTimeout(() => {
+            if (session.closed) return;
+            openSocket(true)
+              .then((newSock) => {
+                if (!settled) { settled = true; resolve(newSock); }
+              })
+              .catch((e) => {
+                log.error(`Riconnessione fallita: ${e.message}`);
+                if (!settled) { settled = true; reject(e); }
+                // se eravamo già up, openSocket schedulerà un altro retry via il prossimo 'close'
+              });
+          }, delayMs);
+        }
+      });
+    });
+  }
+
+  await openSocket(false);
+  return session;
 }
 
 // ============================================================
@@ -359,36 +444,43 @@ async function cmdSetup() {
     log.info('Provo lo stesso a connettermi con la sessione esistente…');
   }
 
-  const sock = await connect({ printQr: true });
+  const session = await createSession({ printQr: true });
   log.ok('Setup completato. Sessione salvata in ' + AUTH_DIR);
-  log.info('Ora puoi eseguire: node index.js groups');
-  log.info('Premi Ctrl+C per uscire.');
 
-  // Lascia aperto qualche secondo per assicurare salvataggio creds
-  await sleep(3000);
-  await sock.end();
+  // Dopo restartRequired e riconnessione, lascia tempo per il sync iniziale
+  // (lista chat, gruppi, ecc.). Baileys lo fa in background.
+  log.info('Attendo 15s per sync iniziale (chat, gruppi, contatti)…');
+  await sleep(15000);
+
+  log.ok('Sessione pronta. Ora puoi eseguire: node index.js groups');
+  await session.end();
   process.exit(0);
 }
 
 async function cmdGroups() {
-  // Argomento opzionale: stringa di ricerca per filtrare i gruppi per nome
-  const filter = (process.argv[3] || '').toLowerCase().trim();
+  // Argomenti: lista di nomi esatti da cercare (case-insensitive)
+  // Es: node index.js groups s1 s2 s3
+  // Se nessun argomento, mostra tutti i gruppi.
+  const searchTerms = process.argv.slice(3).map((s) => s.toLowerCase().trim()).filter(Boolean);
 
-  const sock = await connect({ printQr: false });
+  const session = await createSession({ printQr: false });
+  const sock = session.sock;
   log.info('Recupero lista gruppi…');
   const groups = await sock.groupFetchAllParticipating();
   let entries = Object.entries(groups);
 
-  // Filtra per nome se è stato passato un argomento
-  if (filter) {
-    entries = entries.filter(([, meta]) =>
-      (meta.subject || '').toLowerCase().includes(filter)
-    );
+  // Match esatto del nome (case-insensitive) contro uno qualsiasi dei termini
+  if (searchTerms.length > 0) {
+    entries = entries.filter(([, meta]) => {
+      const name = (meta.subject || '').toLowerCase().trim();
+      return searchTerms.includes(name);
+    });
   }
 
   console.log('\n' + '═'.repeat(70));
-  if (filter) {
-    console.log(`Gruppi che contengono "${filter}": ${entries.length}`);
+  if (searchTerms.length > 0) {
+    console.log(`Cerco match esatti per: ${searchTerms.map((s) => `"${s}"`).join(', ')}`);
+    console.log(`Trovati: ${entries.length}`);
   } else {
     console.log(`Gruppi WhatsApp totali: ${entries.length}`);
   }
@@ -402,13 +494,22 @@ async function cmdGroups() {
       console.log(`    Partecipanti: ${meta.participants?.length || '?'}`);
     });
 
+  // Segnala i termini cercati che non hanno match
+  if (searchTerms.length > 0) {
+    const foundNames = new Set(entries.map(([, meta]) => (meta.subject || '').toLowerCase().trim()));
+    const notFound = searchTerms.filter((t) => !foundNames.has(t));
+    if (notFound.length > 0) {
+      console.log('\n' + '─'.repeat(70));
+      console.log(`⚠️  Nessun gruppo trovato con nome esatto: ${notFound.map((s) => `"${s}"`).join(', ')}`);
+      console.log('   (la ricerca è case-insensitive ma deve essere il nome esatto)');
+    }
+  }
+
   if (entries.length > 0) {
     console.log('\n' + '═'.repeat(70));
-    console.log('Copia gli ID dei gruppi del Miglio d\'Oro in schedule.json (sezione "groups").');
-    console.log('Formato: 120363xxxxxxxxxxxxxx@g.us');
+    console.log('Copia gli ID nei campi "whatsappId" di schedule.json (sezione "groups").');
+    console.log('Formato atteso: 120363xxxxxxxxxxxxxx@g.us');
     console.log('═'.repeat(70));
-  } else if (filter) {
-    console.log('\nNessun gruppo trovato con quel filtro. Riprova con altre parole chiave.');
   }
 
   const me = sock.user?.id;
@@ -418,7 +519,7 @@ async function cmdGroups() {
   }
 
   await sleep(2000);
-  await sock.end();
+  await session.end();
   process.exit(0);
 }
 
@@ -467,6 +568,10 @@ function cmdSchedule() {
 }
 
 async function cmdRun() {
+  // Inizializza file di log (solo in produzione)
+  const logFile = initFileLog();
+  log.info(`📝 File di log: ${logFile}`);
+
   const cfg = loadConfig();
   const eventDate = resolveEventDate();
   const events = buildEvents(cfg, eventDate);
@@ -485,13 +590,25 @@ async function cmdRun() {
   log.info(`Eventi totali: ${events.length}`);
   log.info(`Eventi già inviati (state): ${state.sent.length}`);
 
-  const sock = await connect({ printQr: false });
+  const session = await createSession({
+    printQr: false,
+    onReconnect: async (newSock) => {
+      log.info(`🔁 Socket sostituito: gli invii pendenti useranno la nuova connessione (user: ${newSock.user?.id || '?'})`);
+      if (cfg.adminChatId && !/REPLACE_WITH/.test(cfg.adminChatId)) {
+        try {
+          await newSock.sendMessage(cfg.adminChatId, { text: '🔁 Bot riconnesso a WhatsApp.' });
+        } catch (e) {
+          log.warn('Notifica admin (riconnessione) fallita:', e.message);
+        }
+      }
+    },
+  });
 
   // Notifica admin di avvio
   if (cfg.adminChatId && !/REPLACE_WITH/.test(cfg.adminChatId)) {
     try {
-      await sock.sendMessage(cfg.adminChatId, {
-        text: `🤖 Bot Miglio d'Oro attivo.\nEventi schedulati: ${events.length}\nGruppi: ${cfg.groups.length}`,
+      await session.sock.sendMessage(cfg.adminChatId, {
+        text: `🤖 Bot Miglio d'Oro attivo.\nEventi schedulati: ${events.length}\nGruppi: ${cfg.groups.length}\nLog: ${logFile}`,
       });
     } catch (e) {
       log.warn('Notifica admin fallita:', e.message);
@@ -508,11 +625,24 @@ async function cmdRun() {
   const MIN_GAP_MS = (cfg.throttle?.minDelayMs) || 2000;
   const MAX_GAP_MS = (cfg.throttle?.maxDelayMs) || 5000;
 
+  // IMPORTANTE: leggiamo session.sock al momento dell'invio.
+  // Se è in corso una riconnessione, attendiamo brevemente che torni disponibile.
+  async function waitForSocket(timeoutMs = 60000) {
+    const start = Date.now();
+    while (!session.sock && !session.closed) {
+      if (Date.now() - start > timeoutMs) throw new Error('Timeout attesa socket');
+      await sleep(500);
+    }
+    if (session.closed) throw new Error('Sessione chiusa');
+    return session.sock;
+  }
+
   async function sendThrottled(jid, text) {
     const since = Date.now() - lastSendAt;
     if (since < MIN_GAP_MS) await sleep(MIN_GAP_MS - since);
     const jitter = Math.floor(Math.random() * (MAX_GAP_MS - MIN_GAP_MS));
     if (jitter) await sleep(jitter);
+    const sock = await waitForSocket();
     await sock.sendMessage(jid, { text });
     lastSendAt = Date.now();
   }
@@ -527,9 +657,7 @@ async function cmdRun() {
       continue;
     }
 
-    const cronTime = ev.when;
-    // node-cron non accetta Date direttamente, usiamo setTimeout calcolato
-    const delayMs = cronTime.getTime() - Date.now();
+    const delayMs = ev.when.getTime() - Date.now();
     setTimeout(async () => {
       if (state.sent.includes(ev.id)) return;
       try {
@@ -544,8 +672,8 @@ async function cmdRun() {
         log.ok(`[${fmtTime(ev.when)}] ${ev.type} → ${ev.target.substring(0, 25)}…`);
       } catch (err) {
         log.error(`${ev.id}: ${err.message}`);
-        if (cfg.adminChatId && !/REPLACE_WITH/.test(cfg.adminChatId)) {
-          sock.sendMessage(cfg.adminChatId, { text: `⚠️ Errore ${ev.id}: ${err.message}` }).catch(() => {});
+        if (cfg.adminChatId && !/REPLACE_WITH/.test(cfg.adminChatId) && session.sock) {
+          session.sock.sendMessage(cfg.adminChatId, { text: `⚠️ Errore ${ev.id}: ${err.message}` }).catch(() => {});
         }
       }
     }, delayMs);
@@ -558,12 +686,14 @@ async function cmdRun() {
   // Heartbeat ogni 10 min: log + check connessione
   cron.schedule('*/10 * * * *', () => {
     const remaining = events.length - state.sent.length - skipped;
-    log.info(`💓 alive — eventi rimanenti: ${remaining}`);
+    const sockState = session.sock ? 'connesso' : 'in riconnessione';
+    log.info(`💓 alive — eventi rimanenti: ${remaining} — socket: ${sockState}`);
   });
 
   process.on('SIGINT', async () => {
     log.info('SIGINT, chiudo…');
-    try { await sock.end(); } catch {}
+    await session.end();
+    if (logStream) logStream.end();
     process.exit(0);
   });
 }
