@@ -38,12 +38,11 @@ const baileysLogger = pino({ level: 'silent' });
 // Sleep helper
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// File log (attivato solo da cmdRun via initFileLog)
 let logStream = null;
 let logFilePath = null;
 
 function initFileLog() {
-  if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
+  fs.mkdirSync(LOG_DIR, { recursive: true });
   const date = new Date().toISOString().slice(0, 10);
   logFilePath = path.join(LOG_DIR, `bot-${date}.log`);
   logStream = fs.createWriteStream(logFilePath, { flags: 'a' });
@@ -61,7 +60,6 @@ function writeFileLog(level, args) {
   logStream.write(`${new Date().toISOString()} ${level} ${parts.join(' ')}\n`);
 }
 
-// Log strutturato semplice (stdout + file se inizializzato)
 const log = {
   info: (...a) => { console.log(new Date().toLocaleTimeString('it-IT'), 'INFO ', ...a); writeFileLog('INFO ', a); },
   warn: (...a) => { console.log(new Date().toLocaleTimeString('it-IT'), 'WARN ', ...a); writeFileLog('WARN ', a); },
@@ -224,20 +222,19 @@ function buildEvents(cfg, eventDate) {
         });
       }
 
-      // Game event (arrival + 10min) — solo per tappe intermedie
       if (!stop.isStart && !stop.isFinish) {
         const gameKey = cfg.gameAssignment?.[String(stop.number)];
         const gameDef = gameKey && cfg.games?.[gameKey];
         if (gameDef && gameDef.text) {
-          const isMention = gameKey === 're_regina';
+          const text = `🎮 *GIOCO DELLA TAPPA*\n\n${gameDef.text}`;
           events.push({
             id: `game:s${stop.number}:g${gs.group}`,
             type: 'game',
             when: minToDate(eventDate, arrivalMin + 10),
             target: group.whatsappId,
             gameKey,
-            isMention,
-            text: `🎮 *GIOCO DELLA TAPPA*\n\n${gameDef.text}`,
+            hasMention: text.includes('{MENTION}'),
+            text,
           });
         }
       }
@@ -303,19 +300,21 @@ function buildEvents(cfg, eventDate) {
 // ============================================================
 
 function loadState() {
-  if (!fs.existsSync(STATE_FILE)) return { sent: [] };
+  if (!fs.existsSync(STATE_FILE)) return { sent: [], sentSet: new Set() };
   try {
     const s = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
-    return { sent: Array.isArray(s.sent) ? s.sent : [] };
+    const sent = Array.isArray(s.sent) ? s.sent : [];
+    return { sent, sentSet: new Set(sent) };
   } catch {
-    return { sent: [] };
+    return { sent: [], sentSet: new Set() };
   }
 }
 
 function markSent(state, id) {
-  if (!state.sent.includes(id)) {
+  if (!state.sentSet.has(id)) {
+    state.sentSet.add(id);
     state.sent.push(id);
-    fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+    fs.writeFileSync(STATE_FILE, JSON.stringify({ sent: state.sent }, null, 2));
   }
 }
 
@@ -323,9 +322,8 @@ function markSent(state, id) {
 // BAILEYS CONNECTION
 // ============================================================
 
-// createSession crea un "session holder" il cui campo .sock viene SOSTITUITO
-// dopo ogni riconnessione. I chiamanti (sendThrottled, heartbeat, ecc.)
-// devono leggere session.sock al momento dell'uso, NON salvarne una copia.
+// session.sock viene SOSTITUITO dopo ogni riconnessione. I chiamanti devono
+// leggerlo al momento dell'uso, non salvarne una copia.
 async function createSession({ printQr = false, onReady = null, onReconnect = null } = {}) {
   const session = {
     sock: null,
@@ -598,7 +596,6 @@ function cmdSchedule() {
 }
 
 async function cmdRun() {
-  // Inizializza file di log (solo in produzione)
   const logFile = initFileLog();
   log.info(`📝 File di log: ${logFile}`);
 
@@ -607,12 +604,20 @@ async function cmdRun() {
   const events = buildEvents(cfg, eventDate);
   const state = loadState();
 
-  // Check placeholder
   const placeholders = cfg.groups.filter((g) => /REPLACE_WITH/.test(g.whatsappId)).map((g) => g.name);
   if (placeholders.length) {
     log.error(`Gruppi con placeholder ID: ${placeholders.join(', ')}`);
     log.error('Esegui "node index.js groups" e popola schedule.json');
     process.exit(1);
+  }
+
+  const adminEnabled = cfg.adminChatId && !/REPLACE_WITH/.test(cfg.adminChatId);
+  async function notifyAdmin(text, sock) {
+    if (!adminEnabled) return;
+    const s = sock || session?.sock;
+    if (!s) return;
+    try { await s.sendMessage(cfg.adminChatId, { text }); }
+    catch (e) { log.warn('Notifica admin fallita:', e.message); }
   }
 
   log.info(`Evento: ${cfg.event?.name || '?'}`);
@@ -624,39 +629,23 @@ async function cmdRun() {
     printQr: false,
     onReconnect: async (newSock) => {
       log.info(`🔁 Socket sostituito: gli invii pendenti useranno la nuova connessione (user: ${newSock.user?.id || '?'})`);
-      if (cfg.adminChatId && !/REPLACE_WITH/.test(cfg.adminChatId)) {
-        try {
-          await newSock.sendMessage(cfg.adminChatId, { text: '🔁 Bot riconnesso a WhatsApp.' });
-        } catch (e) {
-          log.warn('Notifica admin (riconnessione) fallita:', e.message);
-        }
-      }
+      await notifyAdmin('🔁 Bot riconnesso a WhatsApp.', newSock);
     },
   });
 
-  // Notifica admin di avvio
-  if (cfg.adminChatId && !/REPLACE_WITH/.test(cfg.adminChatId)) {
-    try {
-      await session.sock.sendMessage(cfg.adminChatId, {
-        text: `🤖 Bot Miglio d'Oro attivo.\nEventi schedulati: ${events.length}\nGruppi: ${cfg.groups.length}\nLog: ${logFile}`,
-      });
-    } catch (e) {
-      log.warn('Notifica admin fallita:', e.message);
-    }
-  }
+  await notifyAdmin(
+    `🤖 Bot Miglio d'Oro attivo.\nEventi schedulati: ${events.length}\nGruppi: ${cfg.groups.length}\nLog: ${logFile}`,
+    session.sock,
+  );
 
-  // Schedula ogni evento
   const now = new Date();
   let scheduled = 0;
   let skipped = 0;
 
-  // Throttle: tieni traccia ultimo invio per inserire delay anti-rate-limit
   let lastSendAt = 0;
   const MIN_GAP_MS = (cfg.throttle?.minDelayMs) || 2000;
   const MAX_GAP_MS = (cfg.throttle?.maxDelayMs) || 5000;
 
-  // IMPORTANTE: leggiamo session.sock al momento dell'invio.
-  // Se è in corso una riconnessione, attendiamo brevemente che torni disponibile.
   async function waitForSocket(timeoutMs = 60000) {
     const start = Date.now();
     while (!session.sock && !session.closed) {
@@ -698,20 +687,20 @@ async function cmdRun() {
       skipped++;
       continue;
     }
-    if (state.sent.includes(ev.id)) {
+    if (state.sentSet.has(ev.id)) {
       skipped++;
       continue;
     }
 
     const delayMs = ev.when.getTime() - Date.now();
     setTimeout(async () => {
-      if (state.sent.includes(ev.id)) return;
+      if (state.sentSet.has(ev.id)) return;
       try {
         if (ev.target === 'broadcast') {
           for (const g of cfg.groups) {
             await sendThrottled(g.whatsappId, ev.text);
           }
-        } else if (ev.type === 'game' && ev.isMention) {
+        } else if (ev.type === 'game' && ev.hasMention) {
           const { text, mentions } = await resolveReReginaMessage(ev.target, ev.text);
           await sendThrottled(ev.target, text, mentions);
         } else {
@@ -721,9 +710,7 @@ async function cmdRun() {
         log.ok(`[${fmtTime(ev.when)}] ${ev.type} → ${ev.target.substring(0, 25)}…`);
       } catch (err) {
         log.error(`${ev.id}: ${err.message}`);
-        if (cfg.adminChatId && !/REPLACE_WITH/.test(cfg.adminChatId) && session.sock) {
-          session.sock.sendMessage(cfg.adminChatId, { text: `⚠️ Errore ${ev.id}: ${err.message}` }).catch(() => {});
-        }
+        notifyAdmin(`⚠️ Errore ${ev.id}: ${err.message}`).catch(() => {});
       }
     }, delayMs);
     scheduled++;
@@ -732,24 +719,63 @@ async function cmdRun() {
   log.ok(`Schedulati ${scheduled} eventi (skip: ${skipped})`);
   log.info('Bot attivo. Tieni questa finestra aperta. Ctrl+C per fermare.');
 
-  // Heartbeat ogni 10 min: log + check connessione
   cron.schedule('*/10 * * * *', () => {
     const remaining = events.length - state.sent.length - skipped;
     const sockState = session.sock ? 'connesso' : 'in riconnessione';
     log.info(`💓 alive — eventi rimanenti: ${remaining} — socket: ${sockState}`);
   });
 
-  process.on('SIGINT', async () => {
-    log.info('SIGINT, chiudo…');
+  const shutdown = async (signal) => {
+    log.info(`${signal}, chiudo…`);
     await session.end();
     if (logStream) logStream.end();
     process.exit(0);
-  });
+  };
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
 }
 
 // ============================================================
 // MAIN
 // ============================================================
+
+async function cmdTest() {
+  const cfg = loadConfig();
+  const placeholders = cfg.groups.filter((g) => /REPLACE_WITH/.test(g.whatsappId)).map((g) => g.name);
+  if (placeholders.length) {
+    log.error(`Gruppi con placeholder ID: ${placeholders.join(', ')}`);
+    process.exit(1);
+  }
+
+  const session = await createSession({ printQr: false });
+  const sock = session.sock;
+  const minGap = (cfg.throttle?.minDelayMs) || 2000;
+  const maxGap = (cfg.throttle?.maxDelayMs) || 5000;
+
+  log.info(`Invio messaggio di test a ${cfg.groups.length} gruppi…`);
+  let ok = 0;
+  let fail = 0;
+  for (let i = 0; i < cfg.groups.length; i++) {
+    const g = cfg.groups[i];
+    const text = `🧪 Test bot Miglio d'Oro\nGruppo: *${g.name}* (id interno: ${g.id})\nJID: \`${g.whatsappId}\`\n\nSe ricevi questo messaggio nel gruppo giusto, l'ID è corretto ✅`;
+    try {
+      await sock.sendMessage(g.whatsappId, { text });
+      log.ok(`[${i + 1}/${cfg.groups.length}] ${g.name} → inviato`);
+      ok++;
+    } catch (e) {
+      log.error(`[${i + 1}/${cfg.groups.length}] ${g.name} → fallito: ${e.message}`);
+      fail++;
+    }
+    if (i < cfg.groups.length - 1) {
+      const jitter = Math.floor(Math.random() * (maxGap - minGap));
+      await sleep(minGap + jitter);
+    }
+  }
+
+  log.ok(`Test completato — ok: ${ok}, falliti: ${fail}`);
+  await session.end();
+  process.exit(fail > 0 ? 1 : 0);
+}
 
 const cmd = process.argv[2];
 const cmds = {
@@ -757,6 +783,7 @@ const cmds = {
   groups: cmdGroups,
   validate: cmdValidate,
   schedule: cmdSchedule,
+  test: cmdTest,
   run: cmdRun,
 };
 
@@ -769,6 +796,7 @@ Comandi:
   groups      Stampa lista gruppi WhatsApp con ID
   validate    Verifica schedule.json
   schedule    Stampa tutti i messaggi che verranno inviati
+  test        Invia 1 messaggio di test a ciascun gruppo (verifica JID)
   run         Avvia il bot in produzione
 
 Sequenza tipica:
