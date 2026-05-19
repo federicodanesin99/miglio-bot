@@ -2,4 +2,5 @@ node_modules/
 auth/
 state.json
 *.log
+logs/
 .env

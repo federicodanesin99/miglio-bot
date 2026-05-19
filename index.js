@@ -139,28 +139,27 @@ function fmtTime(d) {
 // MESSAGE TEMPLATES
 // ============================================================
 
-function tplArrival({ groupName, stopName, departureTime, note, isFinish }) {
+function tplArrival({ groupName, stopName, departureTime, isFinish }) {
   if (isFinish) {
     return (
       `🏁 ${groupName}, BENVENUTI AL TRAGUARDO: *${stopName}*!\n` +
       `Avete completato il Miglio d'Oro 🥇\n` +
-      (note ? `\n${note}\n` : '') +
       `\nBrindate, raccontatevi la giornata e godetevi la gloria 🍻`
     );
   }
   return (
     `📍 ${groupName}, benvenuti a *${stopName}*!\n` +
-    `Ripartenza prevista alle *${departureTime}*.` +
-    (note ? `\n\n${note}` : '')
+    `Ripartenza prevista alle *${departureTime}*.`
   );
 }
 
-function tplPrenotify({ groupName, nextStop, leadMinutes, note }) {
+function tplPrenotify({ groupName, nextStop, leadMinutes, note, groupNote }) {
   if (leadMinutes === 5) {
+    const extras = [note, groupNote].filter(Boolean).join('\n\n');
     return (
       `⏳ ${groupName}, *5 minuti* alla partenza per *${nextStop}*.\n` +
       `Finite il bicchiere, niente fretta ma stiamo per muoverci.` +
-      (note ? `\n\n${note}` : '')
+      (extras ? `\n\n${extras}` : '')
     );
   }
   if (leadMinutes === 2) {
@@ -220,14 +219,32 @@ function buildEvents(cfg, eventDate) {
             groupName: group.name,
             stopName: stop.name,
             departureTime: gs.departure,
-            note: stop.note,
             isFinish: !!stop.isFinish,
           }),
         });
       }
 
+      // Game event (arrival + 10min) — solo per tappe intermedie
+      if (!stop.isStart && !stop.isFinish) {
+        const gameKey = cfg.gameAssignment?.[String(stop.number)];
+        const gameDef = gameKey && cfg.games?.[gameKey];
+        if (gameDef && gameDef.text) {
+          const isMention = gameKey === 're_regina';
+          events.push({
+            id: `game:s${stop.number}:g${gs.group}`,
+            type: 'game',
+            when: minToDate(eventDate, arrivalMin + 10),
+            target: group.whatsappId,
+            gameKey,
+            isMention,
+            text: `🎮 *GIOCO DELLA TAPPA*\n\n${gameDef.text}`,
+          });
+        }
+      }
+
       // Pre-notify + departure (solo se c'è una tappa successiva)
       if (nextStop) {
+        const nextGsForGroup = nextStop.groupSchedule.find((x) => x.group === gs.group);
         for (const lead of leadTimes) {
           events.push({
             id: `pre:s${stop.number}:g${gs.group}:l${lead}`,
@@ -239,13 +256,13 @@ function buildEvents(cfg, eventDate) {
               nextStop: nextStop.name,
               leadMinutes: lead,
               note: lead === 5 ? nextStop.note : null,
+              groupNote: lead === 5 ? (nextGsForGroup && nextGsForGroup.groupNote) : null,
             }),
           });
         }
 
-        const nextGs = nextStop.groupSchedule.find((x) => x.group === gs.group);
-        const restMin = nextGs
-          ? hhmmToMin(nextGs.departure) - hhmmToMin(nextGs.arrival)
+        const restMin = nextGsForGroup
+          ? hhmmToMin(nextGsForGroup.departure) - hhmmToMin(nextGsForGroup.arrival)
           : 20;
 
         events.push({
@@ -256,11 +273,24 @@ function buildEvents(cfg, eventDate) {
           text: tplDeparture({
             groupName: group.name,
             nextStop: nextStop.name,
-            arrivalTime: nextGs ? nextGs.arrival : '',
+            arrivalTime: nextGsForGroup ? nextGsForGroup.arrival : '',
             restMinutes: restMin,
           }),
         });
       }
+    }
+  }
+
+  // AfterMiglio broadcasts
+  if (cfg.afterMiglio?.enabled) {
+    for (const m of cfg.afterMiglio.messages || []) {
+      events.push({
+        id: `after:${m.time}`,
+        type: 'after',
+        when: minToDate(eventDate, hhmmToMin(m.time)),
+        target: 'broadcast',
+        text: m.text,
+      });
     }
   }
 
@@ -637,14 +667,30 @@ async function cmdRun() {
     return session.sock;
   }
 
-  async function sendThrottled(jid, text) {
+  async function sendThrottled(jid, text, mentions = null) {
     const since = Date.now() - lastSendAt;
     if (since < MIN_GAP_MS) await sleep(MIN_GAP_MS - since);
     const jitter = Math.floor(Math.random() * (MAX_GAP_MS - MIN_GAP_MS));
     if (jitter) await sleep(jitter);
     const sock = await waitForSocket();
-    await sock.sendMessage(jid, { text });
+    const payload = mentions && mentions.length ? { text, mentions } : { text };
+    await sock.sendMessage(jid, payload);
     lastSendAt = Date.now();
+  }
+
+  async function resolveReReginaMessage(jid, rawText) {
+    const sock = await waitForSocket();
+    const meta = await sock.groupMetadata(jid);
+    const myId = sock.user?.id?.replace(/:\d+/, '');
+    const participants = (meta.participants || [])
+      .map((p) => p.id)
+      .filter((id) => id && id !== myId);
+    if (participants.length === 0) {
+      return { text: rawText.replace('{MENTION}', '@qualcuno'), mentions: [] };
+    }
+    const picked = participants[Math.floor(Math.random() * participants.length)];
+    const handle = `@${picked.split('@')[0]}`;
+    return { text: rawText.replace('{MENTION}', handle), mentions: [picked] };
   }
 
   for (const ev of events) {
@@ -665,6 +711,9 @@ async function cmdRun() {
           for (const g of cfg.groups) {
             await sendThrottled(g.whatsappId, ev.text);
           }
+        } else if (ev.type === 'game' && ev.isMention) {
+          const { text, mentions } = await resolveReReginaMessage(ev.target, ev.text);
+          await sendThrottled(ev.target, text, mentions);
         } else {
           await sendThrottled(ev.target, ev.text);
         }

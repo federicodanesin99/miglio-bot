@@ -10,15 +10,50 @@
     "maxDelayMs": 5000
   },
   "groups": [
-    { "id": 1, "name": "Gruppo 1", "whatsappId": "REPLACE_WITH_GROUP_ID_1@g.us" },
-    { "id": 2, "name": "Gruppo 2", "whatsappId": "REPLACE_WITH_GROUP_ID_2@g.us" },
-    { "id": 3, "name": "Gruppo 3", "whatsappId": "REPLACE_WITH_GROUP_ID_3@g.us" },
-    { "id": 4, "name": "Gruppo 4", "whatsappId": "REPLACE_WITH_GROUP_ID_4@g.us" },
-    { "id": 5, "name": "Gruppo 5", "whatsappId": "REPLACE_WITH_GROUP_ID_5@g.us" }
+    { "id": 1, "name": "Gruppo 1", "whatsappId": "120363420253607605@g.us" },
+    { "id": 2, "name": "Gruppo 2", "whatsappId": "120363419445868014@g.us" },
+    { "id": 3, "name": "Gruppo 3", "whatsappId": "120363420863196292@g.us" },
+    { "id": 4, "name": "Gruppo 4", "whatsappId": "120363418612034977@g.us" },
+    { "id": 5, "name": "Gruppo 5", "whatsappId": "120363427872207228@g.us" }
   ],
-  "adminChatId": "REPLACE_WITH_YOUR_PERSONAL_NUMBER@s.whatsapp.net",
+  "adminChatId": "393464307504@s.whatsapp.net",
+  "games": {
+    "cavallo": { "text": "🐴 *CAVALLO!*\nVai dal tuo compagno di bevute e finisci il suo bicchiere!" },
+    "karaoke": { "text": "🎤 *KARAOKE!*\nIl gruppo intona insieme il ritornello di una canzone a scelta. Chi si tira indietro paga il prossimo giro!" },
+    "foto": { "text": "📸 *FOTO DI GRUPPO!*\nTutti compatti, selfie obbligatorio in questa tappa. Mandate la foto qui sopra!" },
+    "scambio": { "text": "🔄 *SCAMBIO!*\nScambiate il bicchiere col vicino di sinistra e brindate \"alla salute del bevitore precedente\"!" },
+    "silenzio": { "text": "🤐 *SILENZIO!*\nPer i prossimi 60 secondi nessuno può parlare. Chi parla per primo offre il prossimo giro." },
+    "indovina": { "text": "🎯 *INDOVINA!*\nQualcuno del gruppo pensa un numero da 1 a 10. Chi lo indovina prima si fa pagare il prossimo da chi l'aveva pensato." },
+    "un_piede_solo": { "text": "🦶 *UN PIEDE SOLO!*\nTutti in equilibrio su un piede mentre brindate. Chi cade beve due volte." },
+    "imitazione": { "text": "🎭 *IMITAZIONE!*\nA turno, ogni persona del gruppo imita un altro partecipante. Si vota chi è il migliore." },
+    "re_regina": { "text": "👑 *RE/REGINA!*\nIl gruppo elegge {MENTION} come Re/Regina della tappa. Tutti devono brindare nominandolo: \"Alla salute!\"" }
+  },
+  "gameAssignment": {
+    "2": "cavallo",
+    "3": "karaoke",
+    "4": "foto",
+    "5": "cavallo",
+    "6": "scambio",
+    "7": "silenzio",
+    "8": "cavallo",
+    "9": "indovina",
+    "10": "un_piede_solo",
+    "11": "imitazione",
+    "12": "re_regina"
+  },
+  "afterMiglio": {
+    "enabled": true,
+    "messages": [
+      { "time": "23:45", "text": "🌙 *AFTERMIGLIO IN ARRIVO!*\nCi vediamo TUTTI a *La Corte* per chiudere in bellezza! 🍻" },
+      { "time": "23:50", "text": "🎉 *AFTERMIGLIO!*\nLa Corte vi aspetta — chi vuole continuare la festa è il benvenuto!" },
+      { "time": "23:55", "text": "🥇 *DOPO 13 TAPPE...*\nNon è ancora finita! Tutti a *La Corte* per l'AfterMiglio!" },
+      { "time": "24:00", "text": "🍻 *ULTIMO BRINDISI A LA CORTE!*\nFinché teniamo botta, si beve insieme. Vi aspettiamo!" },
+      { "time": "24:05", "text": "🎊 *AFTERMIGLIO IS NOW!*\nLa Corte, AfterMiglio, finché teniamo botta — non mancate!" }
+    ]
+  },
   "globalAnnouncements": [
-    { "time": "15:30", "text": "🍹 Hey runner! Dalle *15:30* vi aspetto al *Bar ai Ochi* per un aperitivo di riscaldamento. 3ª edizione, si parte alle 16:30!" },
+    { "time": "15:00", "text": "🍹 Hey runner! Dalle *15:30* vi aspetto al *Bar ai Ochi* per un aperitivo di riscaldamento. *HEIL FOTTUTO HITLER* 2ª edizione, si parte alle 16:30!" },
+    { "time": "15:30", "text": "🍹 Hey runner! Dalle *15:30* vi aspetto al *Bar ai Ochi* per un aperitivo di riscaldamento. 2ª edizione, si parte alle 16:30!" },
     { "time": "16:15", "text": "⚡ Mancano *15 minuti* al via del Miglio d'Oro! Allacciate le scarpe, fatevi trovare al Bar ai Ochi. 13 tappe, 5 gruppi, 8 ore di pura gloria. 🥇" },
     { "time": "16:25", "text": "⏰ Mancano *5 minuti*! Fate l'ultimo brindisi prima del via, alle 16:30 si comincia." },
     { "time": "16:30", "text": "🚀 *Il Miglio d'Oro è iniziato!* Buon cammino a tutti e che vinca il gruppo più festaiolo 🍻" }
@@ -52,11 +87,11 @@
     {
       "number": 3,
       "name": "Bar dai Rosa",
-      "note": null,
+      "note": "Esempio nota generale di tappa, valida per tutti i gruppi.",
       "groupSchedule": [
         { "group": 1, "arrival": "17:35", "departure": "17:55" },
         { "group": 2, "arrival": "17:53", "departure": "18:19" },
-        { "group": 3, "arrival": "18:11", "departure": "18:43" },
+        { "group": 3, "arrival": "18:11", "departure": "18:43", "groupNote": "Esempio nota privata per questo gruppo, modificare o eliminare." },
         { "group": 4, "arrival": "18:29", "departure": "19:07" },
         { "group": 5, "arrival": "18:47", "departure": "19:31" }
       ]
@@ -136,7 +171,7 @@
     {
       "number": 10,
       "name": "Pergola",
-      "note": null,
+      "note": "Entrano solo i capi gruppo raccogliete i 5€ fuori dal Pergola per gustarvi una pasta e la birra DIO ADRIANO DA SIRACUSA spero che muoiano i proprietari dio can neanche i negri vengono trattati così",
       "groupSchedule": [
         { "group": 1, "arrival": "20:57", "departure": "21:17" },
         { "group": 2, "arrival": "21:21", "departure": "21:41" },
