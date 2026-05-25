@@ -137,12 +137,18 @@ function fmtTime(d) {
 // MESSAGE TEMPLATES
 // ============================================================
 
-function tplArrival({ groupName, stopName, departureTime, isFinish }) {
+function tplArrival({ groupName, stopName, departureTime, isFinish, isStart }) {
   if (isFinish) {
     return (
       `🏁 ${groupName}, BENVENUTI AL TRAGUARDO: *${stopName}*!\n` +
       `Avete completato il Miglio d'Oro 🥇\n` +
       `\nBrindate, raccontatevi la giornata e godetevi la gloria 🍻`
+    );
+  }
+  if (isStart) {
+    return (
+      `🍻 ${groupName}, benvenuti al *${stopName}*!\n` +
+      `Partite con la *prima consumazione*: si riparte alle *${departureTime}* (tra ~20 min).`
     );
   }
   return (
@@ -206,8 +212,8 @@ function buildEvents(cfg, eventDate) {
       const arrivalMin = hhmmToMin(gs.arrival);
       const departureMin = hhmmToMin(gs.departure);
 
-      // Arrival (skip per la tappa di partenza, c'è l'annuncio globale)
-      if (!stop.isStart) {
+      // Arrival: solo per la tappa di partenza (per le altre lo skip era voluto)
+      if (stop.isStart) {
         events.push({
           id: `arr:s${stop.number}:g${gs.group}`,
           type: 'arrival',
@@ -218,10 +224,11 @@ function buildEvents(cfg, eventDate) {
             stopName: stop.name,
             departureTime: gs.departure,
             isFinish: !!stop.isFinish,
+            isStart: true,
           }),
         });
       }
-
+     
       if (!stop.isStart && !stop.isFinish) {
         const gameKey = cfg.gameAssignment?.[String(stop.number)];
         const gameDef = gameKey && cfg.games?.[gameKey];
@@ -600,9 +607,12 @@ async function cmdRun() {
   log.info(`📝 File di log: ${logFile}`);
 
   const cfg = loadConfig();
-  const eventDate = resolveEventDate();
-  const events = buildEvents(cfg, eventDate);
-  const state = loadState();
+  const dailyLoop = !process.env.EVENT_DATE;
+  let eventDate = resolveEventDate();
+  let events = buildEvents(cfg, eventDate);
+  let state = loadState();
+  let skipped = 0;
+  let pendingTimers = [];
 
   const placeholders = cfg.groups.filter((g) => /REPLACE_WITH/.test(g.whatsappId)).map((g) => g.name);
   if (placeholders.length) {
@@ -622,6 +632,7 @@ async function cmdRun() {
 
   log.info(`Evento: ${cfg.event?.name || '?'}`);
   log.info(`Data: ${eventDate.toDateString()}`);
+  log.info(`Modalità: ${dailyLoop ? 'loop quotidiano (reset a mezzanotte)' : 'singolo giorno (EVENT_DATE forzata)'}`);
   log.info(`Eventi totali: ${events.length}`);
   log.info(`Eventi già inviati (state): ${state.sent.length}`);
 
@@ -637,10 +648,6 @@ async function cmdRun() {
     `🤖 Bot Miglio d'Oro attivo.\nEventi schedulati: ${events.length}\nGruppi: ${cfg.groups.length}\nLog: ${logFile}`,
     session.sock,
   );
-
-  const now = new Date();
-  let scheduled = 0;
-  let skipped = 0;
 
   let lastSendAt = 0;
   const MIN_GAP_MS = (cfg.throttle?.minDelayMs) || 2000;
@@ -682,42 +689,70 @@ async function cmdRun() {
     return { text: rawText.replace('{MENTION}', handle), mentions: [picked] };
   }
 
-  for (const ev of events) {
-    if (ev.when.getTime() < now.getTime() - 30 * 1000) {
-      skipped++;
-      continue;
-    }
-    if (state.sentSet.has(ev.id)) {
-      skipped++;
-      continue;
+  function planDay() {
+    for (const t of pendingTimers) clearTimeout(t);
+    pendingTimers = [];
+
+    eventDate = resolveEventDate();
+    events = buildEvents(cfg, eventDate);
+
+    if (dailyLoop) {
+      try { fs.unlinkSync(STATE_FILE); } catch {}
+      state = loadState();
     }
 
-    const delayMs = ev.when.getTime() - Date.now();
-    setTimeout(async () => {
-      if (state.sentSet.has(ev.id)) return;
-      try {
-        if (ev.target === 'broadcast') {
-          for (const g of cfg.groups) {
-            await sendThrottled(g.whatsappId, ev.text);
-          }
-        } else if (ev.type === 'game' && ev.hasMention) {
-          const { text, mentions } = await resolveReReginaMessage(ev.target, ev.text);
-          await sendThrottled(ev.target, text, mentions);
-        } else {
-          await sendThrottled(ev.target, ev.text);
-        }
-        markSent(state, ev.id);
-        log.ok(`[${fmtTime(ev.when)}] ${ev.type} → ${ev.target.substring(0, 25)}…`);
-      } catch (err) {
-        log.error(`${ev.id}: ${err.message}`);
-        notifyAdmin(`⚠️ Errore ${ev.id}: ${err.message}`).catch(() => {});
+    const now = new Date();
+    let scheduled = 0;
+    skipped = 0;
+
+    for (const ev of events) {
+      if (ev.when.getTime() < now.getTime() - 30 * 1000) {
+        skipped++;
+        continue;
       }
-    }, delayMs);
-    scheduled++;
+      if (state.sentSet.has(ev.id)) {
+        skipped++;
+        continue;
+      }
+
+      const delayMs = ev.when.getTime() - Date.now();
+      const timer = setTimeout(async () => {
+        if (state.sentSet.has(ev.id)) return;
+        try {
+          if (ev.target === 'broadcast') {
+            for (const g of cfg.groups) {
+              await sendThrottled(g.whatsappId, ev.text);
+            }
+          } else if (ev.type === 'game' && ev.hasMention) {
+            const { text, mentions } = await resolveReReginaMessage(ev.target, ev.text);
+            await sendThrottled(ev.target, text, mentions);
+          } else {
+            await sendThrottled(ev.target, ev.text);
+          }
+          markSent(state, ev.id);
+          log.ok(`[${fmtTime(ev.when)}] ${ev.type} → ${ev.target.substring(0, 25)}…`);
+        } catch (err) {
+          log.error(`${ev.id}: ${err.message}`);
+          notifyAdmin(`⚠️ Errore ${ev.id}: ${err.message}`).catch(() => {});
+        }
+      }, delayMs);
+      pendingTimers.push(timer);
+      scheduled++;
+    }
+
+    log.ok(`📅 ${eventDate.toDateString()} — schedulati ${scheduled} eventi (skip: ${skipped})`);
   }
 
-  log.ok(`Schedulati ${scheduled} eventi (skip: ${skipped})`);
+  planDay();
   log.info('Bot attivo. Tieni questa finestra aperta. Ctrl+C per fermare.');
+
+  if (dailyLoop) {
+    cron.schedule('1 0 * * *', () => {
+      log.info('🌅 Nuovo giorno — rigenero la schedule.');
+      planDay();
+      notifyAdmin(`🌅 Nuovo giorno (${eventDate.toDateString()}) — schedule rigenerata.`).catch(() => {});
+    });
+  }
 
   cron.schedule('*/10 * * * *', () => {
     const remaining = events.length - state.sent.length - skipped;

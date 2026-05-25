@@ -10,22 +10,20 @@
     "maxDelayMs": 5000
   },
   "groups": [
-    { "id": 1, "name": "Gruppo 1", "whatsappId": "120363420253607605@g.us" },
-    { "id": 2, "name": "Gruppo 2", "whatsappId": "120363419445868014@g.us" },
-    { "id": 3, "name": "Gruppo 3", "whatsappId": "120363420863196292@g.us" },
-    { "id": 4, "name": "Gruppo 4", "whatsappId": "120363418612034977@g.us" },
-    { "id": 5, "name": "Gruppo 5", "whatsappId": "120363427872207228@g.us" }
+    { "id": 1, "name": "Gruppo 1", "whatsappId": "120363418534895240@g.us" },
+    { "id": 2, "name": "Gruppo 2", "whatsappId": "120363400345437682@g.us" },
+    { "id": 3, "name": "Gruppo 3", "whatsappId": "120363409700023340@g.us" },
+    { "id": 4, "name": "Gruppo 4", "whatsappId": "120363419685191333@g.us" },
+    { "id": 5, "name": "Gruppo 5", "whatsappId": "120363417586705245@g.us" }
   ],
   "adminChatId": "393464307504@s.whatsapp.net",
   "games": {
     "cavallo": { "text": "🐴 *CAVALLO!*\nVai dal tuo compagno di bevute e finisci il suo bicchiere!" },
     "karaoke": { "text": "🎤 *KARAOKE!*\nIl gruppo intona insieme il ritornello di una canzone a scelta. Chi si tira indietro paga il prossimo giro!" },
     "foto": { "text": "📸 *FOTO DI GRUPPO!*\nTutti compatti, selfie obbligatorio in questa tappa. Mandate la foto qui sopra!" },
-    "scambio": { "text": "🔄 *SCAMBIO!*\nScambiate il bicchiere col vicino di sinistra e brindate \"alla salute del bevitore precedente\"!" },
+    "ululato": { "text": "🐺 *ULULATO DI GRUPPO!*\nTutti insieme, un bell'ululato al cielo per marcare il territorio del gruppo! AUUUUU!" },
     "silenzio": { "text": "🤐 *SILENZIO!*\nPer i prossimi 60 secondi nessuno può parlare. Chi parla per primo offre il prossimo giro." },
-    "indovina": { "text": "🎯 *INDOVINA!*\nQualcuno del gruppo pensa un numero da 1 a 10. Chi lo indovina prima si fa pagare il prossimo da chi l'aveva pensato." },
-    "un_piede_solo": { "text": "🦶 *UN PIEDE SOLO!*\nTutti in equilibrio su un piede mentre brindate. Chi cade beve due volte." },
-    "imitazione": { "text": "🎭 *IMITAZIONE!*\nA turno, ogni persona del gruppo imita un altro partecipante. Si vota chi è il migliore." },
+    "un_piede_solo": { "text": "🦶 *UN PIEDE SOLO!*\nTutti in equilibrio su un piede mentre brindate. Chi cade va in raddoppio." },
     "re_regina": { "text": "👑 *RE/REGINA!*\nIl gruppo elegge {MENTION} come Re/Regina della tappa. Tutti devono brindare nominandolo: \"Alla salute!\"" }
   },
   "gameAssignment": {
@@ -33,13 +31,13 @@
     "3": "karaoke",
     "4": "foto",
     "5": "cavallo",
-    "6": "scambio",
-    "7": "silenzio",
+    "6": "ululato",
+    "7": "foto",
     "8": "cavallo",
-    "9": "indovina",
-    "10": "un_piede_solo",
-    "11": "imitazione",
-    "12": "re_regina"
+    "9": "ululato",
+    "10": "re_regina",
+    "11": "ululato",
+    "12": "cavallo"
   },
   "afterMiglio": {
     "enabled": true,
@@ -52,10 +50,10 @@
     ]
   },
   "globalAnnouncements": [
-    { "time": "15:00", "text": "🍹 Hey runner! Dalle *15:30* vi aspetto al *Bar ai Ochi* per un aperitivo di riscaldamento. *HEIL FOTTUTO HITLER* 2ª edizione, si parte alle 16:30!" },
-    { "time": "15:30", "text": "🍹 Hey runner! Dalle *15:30* vi aspetto al *Bar ai Ochi* per un aperitivo di riscaldamento. 2ª edizione, si parte alle 16:30!" },
+    { "time": "11:30", "text": "🍝 Cari amanti del miglio, a pranzo *mangiate pesante*: stasera si va in scena e bisogna reggere fino alla fine. Carburate bene! 🥩🍞" },
+    { "time": "15:00", "text": "🍹 Cari amanti del miglio! Dalle *15:30* vi aspetto al *Bar ai Ochi* per un aperitivo di riscaldamento. 3ª edizione, si parte alle 16:30!\n\n💶 Ricordatevi di portare *3€* per la prima tappa." },
     { "time": "16:15", "text": "⚡ Mancano *15 minuti* al via del Miglio d'Oro! Allacciate le scarpe, fatevi trovare al Bar ai Ochi. 13 tappe, 5 gruppi, 8 ore di pura gloria. 🥇" },
-    { "time": "16:25", "text": "⏰ Mancano *5 minuti*! Fate l'ultimo brindisi prima del via, alle 16:30 si comincia." },
+    { "time": "16:25", "text": "⏰ Mancano *5 minuti*! Fate l'ultimo respiro prima del via, alle 16:30 si va in scena." },
     { "time": "16:30", "text": "🚀 *Il Miglio d'Oro è iniziato!* Buon cammino a tutti e che vinca il gruppo più festaiolo 🍻" }
   ],
   "stops": [
@@ -66,10 +64,10 @@
       "note": null,
       "groupSchedule": [
         { "group": 1, "arrival": "16:30", "departure": "16:50" },
-        { "group": 2, "arrival": "16:30", "departure": "17:08" },
-        { "group": 3, "arrival": "16:30", "departure": "17:26" },
-        { "group": 4, "arrival": "16:30", "departure": "17:44" },
-        { "group": 5, "arrival": "16:30", "departure": "18:02" }
+        { "group": 2, "arrival": "16:49", "departure": "17:09" },
+        { "group": 3, "arrival": "17:08", "departure": "17:28" },
+        { "group": 4, "arrival": "17:27", "departure": "17:47" },
+        { "group": 5, "arrival": "17:46", "departure": "18:06" }
       ]
     },
     {
@@ -78,46 +76,46 @@
       "note": null,
       "groupSchedule": [
         { "group": 1, "arrival": "17:10", "departure": "17:30" },
-        { "group": 2, "arrival": "17:28", "departure": "17:48" },
-        { "group": 3, "arrival": "17:46", "departure": "18:06" },
-        { "group": 4, "arrival": "18:04", "departure": "18:24" },
-        { "group": 5, "arrival": "18:22", "departure": "18:42" }
+        { "group": 2, "arrival": "17:29", "departure": "17:49" },
+        { "group": 3, "arrival": "17:48", "departure": "18:08" },
+        { "group": 4, "arrival": "18:07", "departure": "18:27" },
+        { "group": 5, "arrival": "18:26", "departure": "18:46" }
       ]
     },
     {
       "number": 3,
       "name": "Bar dai Rosa",
-      "note": "Esempio nota generale di tappa, valida per tutti i gruppi.",
+      "note": "La new entry del Miglio! Diamogli un caloroso benvenuto, è la prima volta che entra nel circuito del Miglio d'Oro! 🎉",
       "groupSchedule": [
         { "group": 1, "arrival": "17:35", "departure": "17:55" },
-        { "group": 2, "arrival": "17:53", "departure": "18:19" },
-        { "group": 3, "arrival": "18:11", "departure": "18:43", "groupNote": "Esempio nota privata per questo gruppo, modificare o eliminare." },
-        { "group": 4, "arrival": "18:29", "departure": "19:07" },
-        { "group": 5, "arrival": "18:47", "departure": "19:31" }
+        { "group": 2, "arrival": "17:54", "departure": "18:20" },
+        { "group": 3, "arrival": "18:13", "departure": "18:45", "groupNote": "Dato il tempo di sosta forse è l'occasione per raddoppiare ?🤔" },
+        { "group": 4, "arrival": "18:32", "departure": "19:10", "groupNote": "Dato il tempo di sosta forse è l'occasione per raddoppiare ?🤔" },
+        { "group": 5, "arrival": "18:51", "departure": "19:35", "groupNote": "Dato il tempo di sosta forse è l'occasione per raddoppiare ?🤔" }
       ]
     },
     {
       "number": 4,
       "name": "La Fornace",
-      "note": null,
+      "note": "Partita a calcetto obbligatoria !",
       "groupSchedule": [
         { "group": 1, "arrival": "18:00", "departure": "18:20" },
-        { "group": 2, "arrival": "18:24", "departure": "18:44" },
-        { "group": 3, "arrival": "18:48", "departure": "19:08" },
-        { "group": 4, "arrival": "19:12", "departure": "19:32" },
-        { "group": 5, "arrival": "19:36", "departure": "19:56" }
+        { "group": 2, "arrival": "18:25", "departure": "18:45" },
+        { "group": 3, "arrival": "18:50", "departure": "19:10" },
+        { "group": 4, "arrival": "19:15", "departure": "19:35" },
+        { "group": 5, "arrival": "19:40", "departure": "20:00" }
       ]
     },
     {
       "number": 5,
       "name": "Bar Sorriso",
-      "note": null,
+      "note": " Siate più educati possibile con la Elena che tiene aperto oltre l'orario di chiusura solo per noi, brindate tutti in suo onore! 🍻",
       "groupSchedule": [
         { "group": 1, "arrival": "18:50", "departure": "19:10" },
-        { "group": 2, "arrival": "19:14", "departure": "19:34" },
-        { "group": 3, "arrival": "19:38", "departure": "19:58" },
-        { "group": 4, "arrival": "20:02", "departure": "20:22" },
-        { "group": 5, "arrival": "20:26", "departure": "20:46" }
+        { "group": 2, "arrival": "19:15", "departure": "19:35" },
+        { "group": 3, "arrival": "19:40", "departure": "20:00" },
+        { "group": 4, "arrival": "20:05", "departure": "20:25" },
+        { "group": 5, "arrival": "20:30", "departure": "20:50" }
       ]
     },
     {
@@ -125,35 +123,35 @@
       "name": "Il Vino Quotidiano",
       "note": null,
       "groupSchedule": [
-        { "group": 1, "arrival": "19:20", "departure": "19:40" },
-        { "group": 2, "arrival": "19:44", "departure": "20:04" },
-        { "group": 3, "arrival": "20:08", "departure": "20:28" },
-        { "group": 4, "arrival": "20:32", "departure": "20:52" },
-        { "group": 5, "arrival": "20:56", "departure": "21:16" }
+        { "group": 1, "arrival": "19:20", "departure": "19:40", "groupNote": "Viva la figa e chi la castiga porco de dio !" },
+        { "group": 2, "arrival": "19:45", "departure": "20:05" },
+        { "group": 3, "arrival": "20:10", "departure": "20:30", "groupNote": "Il Vino Quotidiano, ma noi beviamo birra DIO PORCO !" },
+        { "group": 4, "arrival": "20:35", "departure": "20:55" },
+        { "group": 5, "arrival": "21:00", "departure": "21:20" }
       ]
     },
     {
       "number": 7,
       "name": "Pizzeria ai Barbari",
-      "note": null,
+      "note": "*TAPPA FOOD*: entrano solo i capi gruppo a ritirare le pizze.\nFate un pò di fondo che siamo solo a metà percorso.",
       "groupSchedule": [
         { "group": 1, "arrival": "19:41", "departure": "20:01" },
-        { "group": 2, "arrival": "20:05", "departure": "20:25" },
-        { "group": 3, "arrival": "20:29", "departure": "20:49" },
-        { "group": 4, "arrival": "20:53", "departure": "21:13" },
-        { "group": 5, "arrival": "21:17", "departure": "21:37" }
+        { "group": 2, "arrival": "20:06", "departure": "20:26" },
+        { "group": 3, "arrival": "20:31", "departure": "20:51" },
+        { "group": 4, "arrival": "20:56", "departure": "21:16", "groupNote": "Date 1 trancio a quel morto di fame del Trape"  },
+        { "group": 5, "arrival": "21:21", "departure": "21:41" }
       ]
     },
     {
       "number": 8,
       "name": "Vanity",
-      "note": null,
+      "note": "Godetevi la passaggiata attraverso il vecchio Bar Miglio Enterprise (Parco dei Cani). In questo locale anche le liti più funeste possono essere risolte con una birra! 🍻",
       "groupSchedule": [
-        { "group": 1, "arrival": "20:11", "departure": "20:31" },
-        { "group": 2, "arrival": "20:35", "departure": "20:55" },
-        { "group": 3, "arrival": "20:59", "departure": "21:19" },
-        { "group": 4, "arrival": "21:23", "departure": "21:43" },
-        { "group": 5, "arrival": "21:47", "departure": "22:07" }
+        { "group": 1, "arrival": "20:11", "departure": "20:31", "groupNote": "Giuse non inveire contro *personaggi di colore* lungo la strada per piacere... " },
+        { "group": 2, "arrival": "20:36", "departure": "20:56" },
+        { "group": 3, "arrival": "21:01", "departure": "21:21" },
+        { "group": 4, "arrival": "21:26", "departure": "21:46" },
+        { "group": 5, "arrival": "21:51", "departure": "22:11" }
       ]
     },
     {
@@ -161,23 +159,23 @@
       "name": "Fortuna Club",
       "note": null,
       "groupSchedule": [
-        { "group": 1, "arrival": "20:37", "departure": "20:57" },
-        { "group": 2, "arrival": "21:01", "departure": "21:21" },
-        { "group": 3, "arrival": "21:25", "departure": "21:45" },
-        { "group": 4, "arrival": "21:49", "departure": "22:09" },
-        { "group": 5, "arrival": "22:13", "departure": "22:33" }
+        { "group": 1, "arrival": "20:37", "departure": "20:57", "groupNote": "Se la fantasia vi manca  urlate un Porco Dio !" },
+        { "group": 2, "arrival": "21:02", "departure": "21:22" },
+        { "group": 3, "arrival": "21:27", "departure": "21:47" },
+        { "group": 4, "arrival": "21:52", "departure": "22:12", "groupNote": "Ciavatevi un porcosauro e urlate un Porco dio !" },
+        { "group": 5, "arrival": "22:17", "departure": "22:37" }
       ]
     },
     {
       "number": 10,
       "name": "Pergola",
-      "note": "Entrano solo i capi gruppo raccogliete i 5€ fuori dal Pergola per gustarvi una pasta e la birra DIO ADRIANO DA SIRACUSA spero che muoiano i proprietari dio can neanche i negri vengono trattati così",
+      "note": "🍝 *Tappa Pergola*: entrano solo i capi gruppo.\nRaccogliete *5€ a testa* fuori dal locale: sono compresi una pasta e una birra.",
       "groupSchedule": [
         { "group": 1, "arrival": "20:57", "departure": "21:17" },
-        { "group": 2, "arrival": "21:21", "departure": "21:41" },
-        { "group": 3, "arrival": "21:45", "departure": "22:05" },
-        { "group": 4, "arrival": "22:09", "departure": "22:29" },
-        { "group": 5, "arrival": "22:33", "departure": "22:53" }
+        { "group": 2, "arrival": "21:22", "departure": "21:42" },
+        { "group": 3, "arrival": "21:47", "departure": "22:07" },
+        { "group": 4, "arrival": "22:12", "departure": "22:32" },
+        { "group": 5, "arrival": "22:37", "departure": "22:57" }
       ]
     },
     {
@@ -186,35 +184,35 @@
       "note": null,
       "groupSchedule": [
         { "group": 1, "arrival": "21:20", "departure": "21:40" },
-        { "group": 2, "arrival": "21:44", "departure": "22:04" },
-        { "group": 3, "arrival": "22:08", "departure": "22:28" },
-        { "group": 4, "arrival": "22:32", "departure": "22:52" },
-        { "group": 5, "arrival": "22:56", "departure": "23:16" }
+        { "group": 2, "arrival": "21:45", "departure": "22:05" },
+        { "group": 3, "arrival": "22:10", "departure": "22:30" },
+        { "group": 4, "arrival": "22:35", "departure": "22:55" },
+        { "group": 5, "arrival": "23:00", "departure": "23:20",  "groupNote": "Gruppo Verde devi vincere !" }
       ]
     },
     {
       "number": 12,
       "name": "Wu",
-      "note": null,
+      "note": "CURIOSITA': sapevate che Wu ha fondato i Wu Tang Club ?",
       "groupSchedule": [
         { "group": 1, "arrival": "21:42", "departure": "22:02" },
-        { "group": 2, "arrival": "22:06", "departure": "22:26" },
-        { "group": 3, "arrival": "22:30", "departure": "22:50" },
-        { "group": 4, "arrival": "22:54", "departure": "23:14" },
-        { "group": 5, "arrival": "23:18", "departure": "23:38" }
+        { "group": 2, "arrival": "22:07", "departure": "22:27" },
+        { "group": 3, "arrival": "22:32", "departure": "22:52" },
+        { "group": 4, "arrival": "22:57", "departure": "23:17" },
+        { "group": 5, "arrival": "23:22", "departure": "23:42", "groupNote": "Gruppo Verde devi vincere !" }
       ]
     },
     {
       "number": 13,
       "name": "Bar Peter Pan",
       "isFinish": true,
-      "note": null,
+      "note": "Questa è l'ultima tappa del Miglio d'Oro! Sparatevi l'ultima birra e poi ritirate il vostro attestato dai vostri capigruppo! 🎉",
       "groupSchedule": [
         { "group": 1, "arrival": "22:02", "departure": "22:22" },
-        { "group": 2, "arrival": "22:26", "departure": "22:46" },
-        { "group": 3, "arrival": "22:50", "departure": "23:10" },
-        { "group": 4, "arrival": "23:14", "departure": "23:34" },
-        { "group": 5, "arrival": "23:38", "departure": "23:58" }
+        { "group": 2, "arrival": "22:27", "departure": "22:47" },
+        { "group": 3, "arrival": "22:52", "departure": "23:12" },
+        { "group": 4, "arrival": "23:17", "departure": "23:37", "groupNote": "Non scappate subito Manesi deve fare il suo diocan di Video, rimanete tutti lì!" },
+        { "group": 5, "arrival": "23:42", "departure": "23:59" }
       ]
     }
   ]
