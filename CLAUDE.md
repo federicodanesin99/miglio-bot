@@ -23,9 +23,13 @@ dir) are the domain source.
   events of the trip in one go (`setTimeout`; 5-day delays are well under Node's
   ~24.8-day limit). `state.json` is **not** wiped at midnight.
 - **Inbound command router**: the bot answers `/oggi`, `/domani`, `/prossimo`,
-  `/dove`, `/meteo`, `/help` in the configured group or in DM from the admin.
-- **Weather brief**: an automatic morning forecast (open-meteo, no API key) on each
-  Amsterdam day, plus the on-demand `/meteo` command. See `lib/weather.js`.
+  `/dove`, `/meteo`, `/presente`, `/bici`, `/spese`, `/valigia`, `/casa`, `/mezzi`,
+  `/sos`, `/help` in the configured group or in DM from the admin.
+- **Morning "Buongiorno" message**: one automatic message each Amsterdam day
+  (`lib/morning.js`) merging the day's program + weather brief. The on-demand
+  `/meteo` command shows today+tomorrow. See `lib/weather.js`.
+- **Roll-call**: `/presente` opens a 👍-reaction head-count (`lib/rollcall.js`),
+  aggregated silently as people react; `/presente stop` closes it with a tally.
 
 ## Architecture
 
@@ -40,40 +44,58 @@ dir) are the domain source.
   (Italian weekday), `resolveFilterDate()` (reads `EVENT_DATE`), `sleep`.
 - `lib/events.js` — `buildEvents(cfg, filterDay?)` expands the config into a
   time-sorted list. Produces: a `reminder` per `notify:true` stop
-  (`when = day+time − leadTime`), a `global` per `globalAnnouncements`, and (if
-  `weather.enabled`) a `weather` event per weather day at `weather.time`. Event ids
-  are deterministic: `pre:<stop.id>`, `global:<ann.id>`, `weather:<day>` — the
-  idempotency key. Dynamic events (weather) carry an async `build()` instead of a
+  (`when = day+time − leadTime`), a `global` per `globalAnnouncements`, and (if a
+  `weather` block exists) a `morning` event per weather day at `weather.time`. Event
+  ids are deterministic: `pre:<stop.id>`, `global:<ann.id>`, `morning:<day>` — the
+  idempotency key. Dynamic events (`morning`) carry an async `build()` instead of a
   fixed `text`: the scheduler/`test-day` call `ev.build ?? ev.text` at fire-time so
   the forecast is fresh; the static `text` is only an offline preview for
   `schedule`/`next`. `reminderText()` builds a reminder message (custom `tplArrival`
   or a default template); `effectiveGroupId()` resolves `TEST_JID || group.whatsappId`.
+- `lib/morning.js` — `morningText(cfg, day)` (async): the "Buongiorno" message =
+  greeting + the day's program (`lib/format.js`) + the weather brief (when
+  `weather.enabled`). Drives the `morning` event.
+- `lib/format.js` — `formatDayStops(stops)`: the shared 🔔/📍 stop-line renderer used
+  by `/oggi`, `/domani`, and the morning message.
 - `lib/weather.js` — open-meteo brief (no API key). `weatherRangeText(wx,start,end,tz)`
   / `weatherBriefText(wx,day,tz)` fetch the daily forecast and format an Italian
   brief (WMO code → emoji, temp range, precip %, wind, a practical advice line).
   Never throws — on network error returns a fallback with a search link, so the
   scheduler still marks the event sent (no retry storm).
+- `lib/rollcall.js` — `makeRollCall({getGroupSize})`: in-memory (ephemeral) head-count
+  state machine. `start(msgKey)` ties the roll-call to the appello message; the
+  router calls `matchesKey()`+`record(jid,emoji)` on each reaction; `statusText()` /
+  `close()` report the tally. No persistence — a roll-call is for the moment.
 - `lib/state.js` — `loadState`/`markSent`/`clearState`. `state.json` is the
   sent-event ledger that makes `run` safe to restart.
 - `lib/whatsapp.js` — `createSession()` (Baileys connection lifecycle, unchanged
   from the Miglio bot + an `onMessages` hook re-attached on every reconnect),
   `makeSender(session,cfg)` → `{ sendThrottled, notifyAdmin, waitForSocket }`
-  (throttle = `minDelayMs` + jitter up to `maxDelayMs`), and
-  `makeInboundRouter({cfg,sender,ctxFactory})`.
+  (throttle = `minDelayMs` + jitter up to `maxDelayMs`; `sendThrottled` **returns**
+  the Baileys send result, whose `.key` lets `/presente` attach reactions), and
+  `makeInboundRouter({cfg,sender,ctxFactory,rollcall})`. The router also handles
+  `reactionMessage` upserts (feeding `rollcall`) and command replies that return
+  `{ text, after(sent) }` instead of a plain string.
 - `lib/scheduler.js` — `planTrip({cfg,sender,state,filterDay})` schedules every
   future event via `setTimeout`, skipping past (>30s) and already-sent events, and
   appends the id to `state.json` on fire.
 - `lib/context.js` — `makeCtx(cfg, nowOverride?)` builds the `ctx` for command
-  handlers (`today`, `tomorrow`, `stopsForDay`, `stopDateTime`, `dayLabel`).
+  handlers (`today`, `tomorrow`, `stopsForDay`, `stopDateTime`, `dayLabel`). In `run`
+  the ctx is spread with `rollcall` so `/presente` can reach it (test paths omit it).
 - `lib/commands/` — one file per command (`oggi`, `domani`, `prossimo`, `dove`,
-  `meteo`, `help`), each `module.exports = { desc, handler:async(args,ctx)=>string }`.
-  `_registry.js` maps name→command and exposes `dispatch(text, ctx)`.
+  `meteo`, `presente`, `bici`, `spese`, `valigia`, `casa`, `mezzi`, `sos`, `help`),
+  each `module.exports = { desc, handler:async(args,ctx)=>string|{text,after} }`. The
+  static info commands (`bici`/`spese`/`valigia`/`casa`/`mezzi`/`sos`) are built by
+  the `_info.js` factory and just return `cfg.info.<key>`. `_registry.js` maps
+  name→command and exposes `dispatch(text, ctx)`.
 
 ### Inbound security
 
 `makeInboundRouter` answers **only** if the message comes from the configured group
 (`group.whatsappId` or the `TEST_JID` override) **or** is a DM from `adminChatId`.
-Everything else is ignored silently (no leak that a bot exists).
+Everything else is ignored silently (no leak that a bot exists). The same gate
+applies to reactions: only 👍 on the *active* roll-call message (matched by key) are
+counted, and nothing is echoed back per-reaction.
 
 ## Commands
 
@@ -105,8 +127,8 @@ node index.js run                    # production: connect + schedule the whole 
 
 ### npm scripts
 
-`validate`, `dry-run` (alias of `schedule`), `next`, `test:commands` (runs the six
-handlers; fails if any throws), `start` (= `run`), `setup`, `groups`.
+`validate`, `dry-run` (alias of `schedule`), `next`, `test:commands` (runs every
+command handler; fails if any throws), `start` (= `run`), `setup`, `groups`.
 
 ## Environment variables
 
@@ -132,9 +154,13 @@ handlers; fails if any throws), `start` (= `run`), `setup`, `groups`.
   `/oggi`/`/dove` — they're info, not reminders.
 - `globalAnnouncements[]` — `id`, `datetime` (ISO `YYYY-MM-DDTHH:MM[:SS]`), `text`.
 - `weather` (optional) — `enabled`, `time` (`HH:MM`, default `08:00`), `lat`/`lon`
-  (numbers, required when enabled), `place` (label, default `Amsterdam`), optional
+  (numbers, required when `enabled`), `place` (label, default `Amsterdam`), optional
   `days[]` (subset of `trip.days`; default = all trip days), optional `timezone`
-  (default `trip.timezone`). Drives the morning brief and `/meteo`.
+  (default `trip.timezone`). The block's `time`/`days` drive the morning "Buongiorno"
+  event even when `enabled:false` (then the message just omits the weather section);
+  `/meteo` needs `enabled`.
+- `info` (optional) — free-form `{ <key>: <text> }` map powering the static commands
+  `/bici`, `/spese`, `/valigia`, `/casa`, `/mezzi`, `/sos`. Edit text here, not code.
 
 **TBD reservations** (e.g. cena Barracuda, cena G3) live as `notify:false` stops
 with a `__…_DA_CONFERMARE__` marker in the title. When the time is confirmed, set

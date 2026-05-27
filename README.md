@@ -58,12 +58,20 @@ gruppo di test senza toccare `schedule.json`.
 
 ## Comandi nel gruppo (inbound)
 
-`/oggi` · `/domani` · `/prossimo` · `/dove <nome>` · `/meteo` · `/help` — rispondono
-solo nel gruppo configurato o in DM dall'admin.
+Rispondono solo nel gruppo configurato o in DM dall'admin:
 
-Oltre a `/meteo` (su richiesta), il bot manda un **brief meteo automatico** ogni
-mattina dei giorni ad Amsterdam (dati [open-meteo.com](https://open-meteo.com),
-nessuna API key). Si configura nella sezione `weather` di `schedule.json`.
+| Comando | Cosa fa |
+|---|---|
+| `/oggi` `/domani` `/prossimo` | Programma del giorno / prossima tappa |
+| `/dove <nome>` | Cerca un luogo nel piano |
+| `/meteo` | Previsioni oggi + domani (open-meteo) |
+| `/presente` | Appello: chi c'è? (reagite 👍) · `/presente stop` chiude |
+| `/bici` `/spese` `/valigia` `/casa` `/mezzi` `/sos` | Info utili (noleggio, Splitwise, checklist, ostello, trasporti, emergenze) |
+| `/help` | Elenco comandi |
+
+Ogni mattina dei giorni ad Amsterdam il bot manda un **messaggio "Buongiorno"** che
+fonde **programma del giorno + meteo** (dati [open-meteo.com](https://open-meteo.com),
+nessuna API key). Si configura nelle sezioni `weather` e `info` di `schedule.json`.
 
 ## Roadmap
 

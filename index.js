@@ -27,6 +27,7 @@ const { loadState } = require('./lib/state');
 const { createSession, makeSender, makeInboundRouter, AUTH_DIR } = require('./lib/whatsapp');
 const { planTrip } = require('./lib/scheduler');
 const { makeCtx } = require('./lib/context');
+const { makeRollCall } = require('./lib/rollcall');
 const { dispatch } = require('./lib/commands/_registry');
 const { fmtDateTime, resolveFilterDate, parseDayTime, sleep, dayLabel } = require('./lib/time');
 
@@ -159,8 +160,9 @@ async function cmdTestCommand() {
   const filterDay = resolveFilterDate();
   const nowOverride = filterDay ? parseDayTime(filterDay, '00:00') : null;
   const reply = await dispatch(text, makeCtx(cfg, nowOverride));
+  const out = typeof reply === 'string' ? reply : (reply?.text || '');
   console.log('\n' + '─'.repeat(60));
-  console.log(reply);
+  console.log(out);
   console.log('─'.repeat(60));
 }
 
@@ -236,7 +238,17 @@ async function cmdRun() {
 
   let sender = null;
   let router = null;
-  const ctxFactory = () => makeCtx(cfg);
+  const rollcall = makeRollCall({
+    // Attesi all'appello = partecipanti del gruppo meno il bot.
+    getGroupSize: async () => {
+      const jid = effectiveGroupId(cfg);
+      if (!jid.endsWith('@g.us')) return null;
+      const sock = await sender.waitForSocket();
+      const meta = await sock.groupMetadata(jid);
+      return Math.max(0, (meta.participants?.length || 1) - 1);
+    },
+  });
+  const ctxFactory = () => ({ ...makeCtx(cfg), rollcall });
 
   log.info(`Viaggio: ${cfg.trip.name}`);
   log.info(`Gruppo: ${cfg.group.name} (${effectiveGroupId(cfg)})`);
@@ -253,7 +265,7 @@ async function cmdRun() {
   });
 
   sender = makeSender(session, cfg);
-  router = makeInboundRouter({ cfg, sender, ctxFactory });
+  router = makeInboundRouter({ cfg, sender, ctxFactory, rollcall });
 
   const { scheduled, skipped, events } = planTrip({ cfg, sender, state, filterDay });
   log.ok(`📅 Schedulati ${scheduled} eventi (skip: ${skipped})${filterDay ? ` — giorno ${filterDay}` : ''}`);

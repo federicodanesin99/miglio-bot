@@ -16,6 +16,15 @@
     "lon": 4.9041,
     "days": ["2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03"]
   },
+  "info": {
+    "bici": "🚲 *Bici — TIP Bike Rental*\n📍 IJpromenade 2, Amsterdam Noord\nhttps://www.google.com/maps/search/?api=1&query=TIP+Amsterdam+North+IJpromenade+2\n\n• 15 bici prenotate · serve carta di credito per il deposito\n• Ritiro: dom 31/05 ~13.45 · Riconsegna: mer 03/06 ore 10.00\n• Portate un lucchetto extra\n• Traghetto Noord ⟷ Centraal: gratis, 24/7, bici incluse (linea Buiksloterweg)\n🔧 https://bikerentalamsterdamnorth.nl/",
+    "spese": "💶 *Spese condivise — Splitwise*\nAggiungete qui i conti da dividere, così a fine viaggio si fanno i conti in automatico:\nhttps://www.splitwise.com/join/oCJ9DxFD8tW+1d51zj?v=e",
+    "valigia": "🧳 *Checklist valigia*\n\n• Documenti (carta d'identità UE) + carte d'imbarco\n• Caricabatterie + power bank\n• K-way / impermeabile (AMS a fine maggio è ballerino)\n• Scarpe comode + un paio di ricambio asciutto\n• Lucchetto extra bici · carta di credito (deposito) · contante (smartshop = solo cash)\n• Borraccia · medicine personali\n• Mazzo di carte · cassa bluetooth (la porta Tilla)\n• Sacchetto di plastica per la sella (se piove, culo asciutto)\n• Carta Giovani Europea (EYCA) attiva sull'app IO → sconti in città",
+    "casa": "🛏️ *Ostello — Clink NOORD*\n📍 Amsterdam Noord\nhttps://www.google.com/maps/search/?api=1&query=Clink+NOORD+Hostel+Amsterdam\n\n• Check-in: dom 31/05 ore 15.00\n• Check-out: mer 03/06 ore 09.30\n🔗 https://www.clinkhostels.com/amsterdam/clinknoord/",
+    "mezzi": "🚆 *Spostamenti*\n\n• Schiphol ⟷ Centraal: treno diretto NS, ~15 min\n• Centraal ⟷ Noord: traghetto GRATIS 24/7, bici incluse (linea Buiksloterweg, dietro la stazione)\n• In città: bici (vedi /bici) — ciclabili ovunque, tieni la destra e segnala con la mano\n• Tram/bus/metro GVB: carta contactless o OVpay",
+    "sos": "🆘 *Emergenze e numeri utili*\n\n• Emergenze (polizia/ambulanza/pompieri): *112*\n• Polizia non urgente (NL): 0900-8844\n• Referente gruppo: +39 346 430 7504\n• Ambasciata d'Italia – L'Aia: +31 70 302 1030\n• Ostello Clink NOORD: https://www.google.com/maps/search/?api=1&query=Clink+NOORD+Hostel+Amsterdam\n\nTenete una foto dei documenti sul telefono.",
+    "_nota": "Numeri ambasciata/polizia DA VERIFICARE prima del viaggio."
+  },
 
   "globalAnnouncements": [
     {
