@@ -1,0 +1,29 @@
+[Unit]
+Description=Amsterdam Bot (WhatsApp, Baileys) — promemoria viaggio
+Documentation=https://github.com/federicodanesin99/miglio-bot
+After=network-online.target
+Wants=network-online.target
+# Se va in crash-loop (es. logout WhatsApp) si ferma dopo 5 tentativi in 5 min.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=__USER__
+WorkingDirectory=__APPDIR__
+# .env opzionale (TEST_JID, EVENT_DATE…). Il "-" iniziale = non obbligatorio.
+EnvironmentFile=-__APPDIR__/.env
+Environment=NODE_ENV=production
+Environment=TZ=Europe/Amsterdam
+ExecStart=__NODE__ index.js run
+Restart=on-failure
+RestartSec=10
+SyslogIdentifier=amsterdam-bot
+
+# Hardening leggero (l'app scrive solo nella sua cartella: auth/ state.json logs/)
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

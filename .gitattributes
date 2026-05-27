@@ -1,0 +1,4 @@
+# Forza LF sui file che girano su Linux: con CRLF lo shebang dello script bash
+# fallisce ("bad interpreter: /usr/bin/env bash^M") e systemd non legge la unit.
+*.sh        text eol=lf
+*.service   text eol=lf

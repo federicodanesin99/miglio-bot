@@ -73,6 +73,19 @@ Ogni mattina dei giorni ad Amsterdam il bot manda un **messaggio "Buongiorno"** 
 fonde **programma del giorno + meteo** (dati [open-meteo.com](https://open-meteo.com),
 nessuna API key). Si configura nelle sezioni `weather` e `info` di `schedule.json`.
 
+## Deployment (NucBox G9 / Ubuntu)
+
+Per farlo girare 24/7 come servizio systemd vedi **[`DEPLOY.md`](./DEPLOY.md)**.
+In breve, sul device:
+
+```bash
+git clone https://github.com/federicodanesin99/miglio-bot.git && cd miglio-bot
+git checkout ams-guide
+./deploy/deploy.sh          # installa Node, deps e il servizio
+node index.js setup         # pairing QR (una volta)
+sudo systemctl start amsterdam-bot
+```
+
 ## Roadmap
 
 Feature future in [`ROADMAP.md`](./ROADMAP.md).
