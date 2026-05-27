@@ -14,7 +14,7 @@
     "schedule": "node index.js schedule",
     "dry-run": "node index.js schedule",
     "next": "node index.js next",
-    "test:commands": "node index.js test-command \"/oggi\" && node index.js test-command \"/domani\" && node index.js test-command \"/prossimo\" && node index.js test-command \"/dove test\" && node index.js test-command \"/help\"",
+    "test:commands": "node index.js test-command \"/oggi\" && node index.js test-command \"/domani\" && node index.js test-command \"/prossimo\" && node index.js test-command \"/dove test\" && node index.js test-command \"/meteo\" && node index.js test-command \"/help\"",
     "start": "node index.js run"
   },
   "dependencies": {

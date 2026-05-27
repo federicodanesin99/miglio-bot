@@ -23,7 +23,9 @@ dir) are the domain source.
   events of the trip in one go (`setTimeout`; 5-day delays are well under Node's
   ~24.8-day limit). `state.json` is **not** wiped at midnight.
 - **Inbound command router**: the bot answers `/oggi`, `/domani`, `/prossimo`,
-  `/dove`, `/help` in the configured group or in DM from the admin.
+  `/dove`, `/meteo`, `/help` in the configured group or in DM from the admin.
+- **Weather brief**: an automatic morning forecast (open-meteo, no API key) on each
+  Amsterdam day, plus the on-demand `/meteo` command. See `lib/weather.js`.
 
 ## Architecture
 
@@ -37,11 +39,20 @@ dir) are the domain source.
   (both build **local** Dates = trip TZ), `dayKey`, `fmtDateTime`, `dayLabel`
   (Italian weekday), `resolveFilterDate()` (reads `EVENT_DATE`), `sleep`.
 - `lib/events.js` — `buildEvents(cfg, filterDay?)` expands the config into a
-  time-sorted list. Produces **only**: a `reminder` per `notify:true` stop
-  (`when = day+time − leadTime`) and a `global` per `globalAnnouncements`. Event ids
-  are deterministic: `pre:<stop.id>`, `global:<ann.id>` — the idempotency key.
-  `reminderText()` builds the message (custom `tplArrival` or a default template);
-  `effectiveGroupId()` resolves `TEST_JID || group.whatsappId`.
+  time-sorted list. Produces: a `reminder` per `notify:true` stop
+  (`when = day+time − leadTime`), a `global` per `globalAnnouncements`, and (if
+  `weather.enabled`) a `weather` event per weather day at `weather.time`. Event ids
+  are deterministic: `pre:<stop.id>`, `global:<ann.id>`, `weather:<day>` — the
+  idempotency key. Dynamic events (weather) carry an async `build()` instead of a
+  fixed `text`: the scheduler/`test-day` call `ev.build ?? ev.text` at fire-time so
+  the forecast is fresh; the static `text` is only an offline preview for
+  `schedule`/`next`. `reminderText()` builds a reminder message (custom `tplArrival`
+  or a default template); `effectiveGroupId()` resolves `TEST_JID || group.whatsappId`.
+- `lib/weather.js` — open-meteo brief (no API key). `weatherRangeText(wx,start,end,tz)`
+  / `weatherBriefText(wx,day,tz)` fetch the daily forecast and format an Italian
+  brief (WMO code → emoji, temp range, precip %, wind, a practical advice line).
+  Never throws — on network error returns a fallback with a search link, so the
+  scheduler still marks the event sent (no retry storm).
 - `lib/state.js` — `loadState`/`markSent`/`clearState`. `state.json` is the
   sent-event ledger that makes `run` safe to restart.
 - `lib/whatsapp.js` — `createSession()` (Baileys connection lifecycle, unchanged
@@ -55,7 +66,7 @@ dir) are the domain source.
 - `lib/context.js` — `makeCtx(cfg, nowOverride?)` builds the `ctx` for command
   handlers (`today`, `tomorrow`, `stopsForDay`, `stopDateTime`, `dayLabel`).
 - `lib/commands/` — one file per command (`oggi`, `domani`, `prossimo`, `dove`,
-  `help`), each `module.exports = { desc, handler:async(args,ctx)=>string }`.
+  `meteo`, `help`), each `module.exports = { desc, handler:async(args,ctx)=>string }`.
   `_registry.js` maps name→command and exposes `dispatch(text, ctx)`.
 
 ### Inbound security
@@ -94,7 +105,7 @@ node index.js run                    # production: connect + schedule the whole 
 
 ### npm scripts
 
-`validate`, `dry-run` (alias of `schedule`), `next`, `test:commands` (runs the five
+`validate`, `dry-run` (alias of `schedule`), `next`, `test:commands` (runs the six
 handlers; fails if any throws), `start` (= `run`), `setup`, `groups`.
 
 ## Environment variables
@@ -120,6 +131,10 @@ handlers; fails if any throws), `start` (= `run`), `setup`, `groups`.
   `{maps} {name} {title} {time} {lead}`). Stops with `notify:false` still appear in
   `/oggi`/`/dove` — they're info, not reminders.
 - `globalAnnouncements[]` — `id`, `datetime` (ISO `YYYY-MM-DDTHH:MM[:SS]`), `text`.
+- `weather` (optional) — `enabled`, `time` (`HH:MM`, default `08:00`), `lat`/`lon`
+  (numbers, required when enabled), `place` (label, default `Amsterdam`), optional
+  `days[]` (subset of `trip.days`; default = all trip days), optional `timezone`
+  (default `trip.timezone`). Drives the morning brief and `/meteo`.
 
 **TBD reservations** (e.g. cena Barracuda, cena G3) live as `notify:false` stops
 with a `__…_DA_CONFERMARE__` marker in the title. When the time is confirmed, set

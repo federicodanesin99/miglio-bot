@@ -189,7 +189,8 @@ async function cmdTestDay() {
   const target = jid || effectiveGroupId(cfg);
   log.info(`Invio ${events.length} messaggi di ${day} a ${target}…`);
   for (const ev of events) {
-    await sender.sendThrottled(target, ev.text);
+    const text = ev.build ? await ev.build() : ev.text;
+    await sender.sendThrottled(target, text);
     log.ok(`${ev.id} → inviato`);
   }
   log.ok('test-day completato');

@@ -4,10 +4,18 @@
     "timezone": "Europe/Amsterdam",
     "days": ["2026-05-30", "2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03"]
   },
-  "group": { "whatsappId": "REPLACE_WITH_JID@g.us", "name": "Amsterdam 2026" },
+  "group": { "whatsappId": "120363426026888827@g.us", "name": "Amsterdam 2026" },
   "adminChatId": "393464307504@s.whatsapp.net",
   "throttle": { "minDelayMs": 2000, "maxDelayMs": 5000 },
   "defaults": { "leadTime": 20 },
+  "weather": {
+    "enabled": true,
+    "time": "08:00",
+    "place": "Amsterdam",
+    "lat": 52.3676,
+    "lon": 4.9041,
+    "days": ["2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03"]
+  },
 
   "globalAnnouncements": [
     {

@@ -19,9 +19,10 @@ trovi breadcrumb `// future: <feature>` nei punti naturali di aggancio.
 
 - **`/sos` — emergenze** — numeri utili (112, ambasciata), indirizzo ostello,
   posizione, contatto referente. Risposta immediata, niente schedulazione.
-- **Meteo automatico** — integrazione [open-meteo.com](https://open-meteo.com)
-  (no API key) per un brief meteo mattutino di Amsterdam. Aggancio: nuovo tipo di
-  evento `global` generato dinamicamente.
+- ~~**Meteo automatico**~~ ✅ **Fatto.** Brief meteo mattutino + comando `/meteo` via
+  [open-meteo.com](https://open-meteo.com) (no API key). Modulo `lib/weather.js`,
+  evento dinamico `weather` (testo calcolato al fire-time via `ev.build`), sezione
+  `weather` in `schedule.json`.
 - **`/chiedi <domanda>` — LLM concierge** — risposte libere su Amsterdam / piano
   viaggio via API LLM. Richiede una dipendenza e una chiave.
 - **Diario di bordo serale** — messaggio automatico a fine giornata che riepiloga le
