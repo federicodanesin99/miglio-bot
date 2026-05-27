@@ -1,219 +1,343 @@
 {
-  "event": {
-    "name": "Miglio d'Oro - 3ª Edizione",
-    "year": 2026,
-    "timezone": "Europe/Rome",
-    "leadTimes": [5, 2]
+  "trip": {
+    "name": "Amsterdam · Folclore e Tartufi",
+    "timezone": "Europe/Amsterdam",
+    "days": ["2026-05-30", "2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03"]
   },
-  "throttle": {
-    "minDelayMs": 2000,
-    "maxDelayMs": 5000
-  },
-  "groups": [
-    { "id": 1, "name": "Gruppo 1", "whatsappId": "120363418534895240@g.us" },
-    { "id": 2, "name": "Gruppo 2", "whatsappId": "120363400345437682@g.us" },
-    { "id": 3, "name": "Gruppo 3", "whatsappId": "120363409700023340@g.us" },
-    { "id": 4, "name": "Gruppo 4", "whatsappId": "120363419685191333@g.us" },
-    { "id": 5, "name": "Gruppo 5", "whatsappId": "120363417586705245@g.us" }
-  ],
+  "group": { "whatsappId": "REPLACE_WITH_JID@g.us", "name": "Amsterdam 2026" },
   "adminChatId": "393464307504@s.whatsapp.net",
-  "games": {
-    "cavallo": { "text": "🐴 *CAVALLO!*\nVai dal tuo compagno di bevute e finisci il suo bicchiere!" },
-    "karaoke": { "text": "🎤 *KARAOKE!*\nIl gruppo intona insieme il ritornello di una canzone a scelta. Chi si tira indietro paga il prossimo giro!" },
-    "foto": { "text": "📸 *FOTO DI GRUPPO!*\nTutti compatti, selfie obbligatorio in questa tappa. Mandate la foto qui sopra!" },
-    "ululato": { "text": "🐺 *ULULATO DI GRUPPO!*\nTutti insieme, un bell'ululato al cielo per marcare il territorio del gruppo! AUUUUU!" },
-    "silenzio": { "text": "🤐 *SILENZIO!*\nPer i prossimi 60 secondi nessuno può parlare. Chi parla per primo offre il prossimo giro." },
-    "un_piede_solo": { "text": "🦶 *UN PIEDE SOLO!*\nTutti in equilibrio su un piede mentre brindate. Chi cade va in raddoppio." },
-    "re_regina": { "text": "👑 *RE/REGINA!*\nIl gruppo elegge {MENTION} come Re/Regina della tappa. Tutti devono brindare nominandolo: \"Alla salute!\"" }
-  },
-  "gameAssignment": {
-    "2": "cavallo",
-    "3": "karaoke",
-    "4": "foto",
-    "5": "cavallo",
-    "6": "ululato",
-    "7": "foto",
-    "8": "cavallo",
-    "9": "ululato",
-    "10": "re_regina",
-    "11": "ululato",
-    "12": "cavallo"
-  },
-  "afterMiglio": {
-    "enabled": true,
-    "messages": [
-      { "time": "23:45", "text": "🌙 *AFTERMIGLIO IN ARRIVO!*\nCi vediamo TUTTI a *La Corte* per chiudere in bellezza! 🍻" },
-      { "time": "23:50", "text": "🎉 *AFTERMIGLIO!*\nLa Corte vi aspetta — chi vuole continuare la festa è il benvenuto!" },
-      { "time": "23:55", "text": "🥇 *DOPO 13 TAPPE...*\nNon è ancora finita! Tutti a *La Corte* per l'AfterMiglio!" },
-      { "time": "24:00", "text": "🍻 *ULTIMO BRINDISI A LA CORTE!*\nFinché teniamo botta, si beve insieme. Vi aspettiamo!" },
-      { "time": "24:05", "text": "🎊 *AFTERMIGLIO IS NOW!*\nLa Corte, AfterMiglio, finché teniamo botta — non mancate!" }
-    ]
-  },
+  "throttle": { "minDelayMs": 2000, "maxDelayMs": 5000 },
+  "defaults": { "leadTime": 20 },
+
   "globalAnnouncements": [
-    { "time": "11:30", "text": "🍝 Cari amanti del miglio, a pranzo *mangiate pesante*: stasera si va in scena e bisogna reggere fino alla fine. Carburate bene! 🥩🍞" },
-    { "time": "15:00", "text": "🍹 Cari amanti del miglio! Dalle *15:30* vi aspetto al *Bar ai Ochi* per un aperitivo di riscaldamento. 3ª edizione, si parte alle 16:30!\n\n💶 Ricordatevi di portare *3€* per la prima tappa." },
-    { "time": "16:15", "text": "⚡ Mancano *15 minuti* al via del Miglio d'Oro! Allacciate le scarpe, fatevi trovare al Bar ai Ochi. 13 tappe, 5 gruppi, 8 ore di pura gloria. 🥇" },
-    { "time": "16:25", "text": "⏰ Mancano *5 minuti*! Fate l'ultimo respiro prima del via, alle 16:30 si va in scena." },
-    { "time": "16:30", "text": "🚀 *Il Miglio d'Oro è iniziato!* Buon cammino a tutti e che vinca il gruppo più festaiolo 🍻" }
+    {
+      "id": "g0.welcome",
+      "datetime": "2026-05-30T12:00:00",
+      "text": "🇳🇱 *Amsterdam 2026* — si parte domani!\n\n🗺️ Mappa del viaggio: https://www.google.com/maps/d/edit?mid=1CRsUJV31CBbkC20EBWceQKJzI6avsVE&usp=sharing\n💶 Spese condivise (Splitwise): https://www.splitwise.com/join/oCJ9DxFD8tW+1d51zj?v=e\n\nUltima chiamata per chi deve confermare *bici TIP* e *cena Barracuda* (caparra 10€). Scrivete /oggi o /domani per il programma."
+    },
+    {
+      "id": "g0.valigia",
+      "datetime": "2026-05-30T18:00:00",
+      "text": "🧳 *Promemoria valigia* — domani si vola ✈️\n\n• Documenti (carta d'identità UE basta) + carte d'imbarco\n• Caricabatterie + power bank\n• Impermeabile / k-way (AMS a fine maggio è ballerino)\n• Scarpe comode + un paio di ricambio\n• Lucchetto extra bici · carta di credito (deposito) · contante (smartshop)\n• Borraccia, mazzo di carte, cassa bluetooth\n\nSveglia presto: ritrovo aeroporto domattina!"
+    },
+    {
+      "id": "g1.sveglia",
+      "datetime": "2026-05-31T07:00:00",
+      "text": "⏰ *Sveglia!* Oggi si parte per Amsterdam 🇳🇱\n\n✈️ Volo VCE → AMS alle *09.45*.\n📍 Ritrovo all'aeroporto di Venezia (VCE) entro le *08.00*: https://www.google.com/maps/search/?api=1&query=Venice+Marco+Polo+Airport\n\nControllate documenti e carta d'imbarco. Non fate tardi!"
+    },
+    {
+      "id": "g4.sveglia",
+      "datetime": "2026-06-03T07:00:00",
+      "text": "⏰ *Sveglia — giorno del ritorno.*\n\nVolo AMS → VCE alle *13.50*. Oggi è pura logistica: check-out 09.30, riconsegna bici 10.00, treno 10.30, check-in 11.00.\nPreparate gli zaini stanotte, con 15 persone ogni incastro conta. Scrivete /oggi per la tabella."
+    }
   ],
+
   "stops": [
     {
-      "number": 1,
-      "name": "Bar ai Ochi",
-      "isStart": true,
-      "note": null,
-      "groupSchedule": [
-        { "group": 1, "arrival": "16:30", "departure": "16:50" },
-        { "group": 2, "arrival": "16:49", "departure": "17:09" },
-        { "group": 3, "arrival": "17:08", "departure": "17:28" },
-        { "group": 4, "arrival": "17:27", "departure": "17:47" },
-        { "group": 5, "arrival": "17:46", "departure": "18:06" }
-      ]
+      "id": "g1.arrivo",
+      "day": "2026-05-31",
+      "time": "11:50",
+      "title": "Arrivo Schiphol",
+      "location": { "name": "Aeroporto AMS Schiphol", "maps": "https://www.google.com/maps/search/?api=1&query=Schiphol+Airport" },
+      "notify": false
     },
     {
-      "number": 2,
-      "name": "Periferia",
-      "note": null,
-      "groupSchedule": [
-        { "group": 1, "arrival": "17:10", "departure": "17:30" },
-        { "group": 2, "arrival": "17:29", "departure": "17:49" },
-        { "group": 3, "arrival": "17:48", "departure": "18:08" },
-        { "group": 4, "arrival": "18:07", "departure": "18:27" },
-        { "group": 5, "arrival": "18:26", "departure": "18:46" }
-      ]
+      "id": "g1.pranzo",
+      "day": "2026-05-31",
+      "time": "12:30",
+      "title": "Pranzo veloce (Schiphol)",
+      "location": { "name": "Schiphol", "maps": "https://www.google.com/maps/search/?api=1&query=Schiphol+Airport" },
+      "notify": false
     },
     {
-      "number": 3,
-      "name": "Bar dai Rosa",
-      "note": "La new entry del Miglio! Diamogli un caloroso benvenuto, è la prima volta che entra nel circuito del Miglio d'Oro! 🎉",
-      "groupSchedule": [
-        { "group": 1, "arrival": "17:35", "departure": "17:55" },
-        { "group": 2, "arrival": "17:54", "departure": "18:20" },
-        { "group": 3, "arrival": "18:13", "departure": "18:45", "groupNote": "Dato il tempo di sosta forse è l'occasione per raddoppiare ?🤔" },
-        { "group": 4, "arrival": "18:32", "departure": "19:10", "groupNote": "Dato il tempo di sosta forse è l'occasione per raddoppiare ?🤔" },
-        { "group": 5, "arrival": "18:51", "departure": "19:35", "groupNote": "Dato il tempo di sosta forse è l'occasione per raddoppiare ?🤔" }
-      ]
+      "id": "g1.treno-centraal",
+      "day": "2026-05-31",
+      "time": "13:00",
+      "title": "Treno Schiphol → Centraal",
+      "location": { "name": "Schiphol Airport Station", "maps": "https://www.google.com/maps/search/?api=1&query=Schiphol+Airport" },
+      "notify": true,
+      "tplArrival": "🚆 Tra {lead} min ci muoviamo: treno *Schiphol → Centraal* (13.00). Tutti compatti verso i tornelli, biglietti pronti!"
     },
     {
-      "number": 4,
-      "name": "La Fornace",
-      "note": "Partita a calcetto obbligatoria !",
-      "groupSchedule": [
-        { "group": 1, "arrival": "18:00", "departure": "18:20" },
-        { "group": 2, "arrival": "18:25", "departure": "18:45" },
-        { "group": 3, "arrival": "18:50", "departure": "19:10" },
-        { "group": 4, "arrival": "19:15", "departure": "19:35" },
-        { "group": 5, "arrival": "19:40", "departure": "20:00" }
-      ]
+      "id": "g1.traghetto",
+      "day": "2026-05-31",
+      "time": "13:30",
+      "title": "Traghetto Centraal → Noord",
+      "location": { "name": "Imbarco Buiksloterweg", "maps": "https://www.google.com/maps/search/?api=1&query=Buiksloterwegveer+ferry+Amsterdam" },
+      "notify": true,
+      "tplArrival": "⛴️ Tra {lead} min traghetto *Centraal → Noord* (linea Buiksloterweg, gratis). Dietro la stazione Centraal. {maps}"
     },
     {
-      "number": 5,
-      "name": "Bar Sorriso",
-      "note": " Siate più educati possibile con la Elena che tiene aperto oltre l'orario di chiusura solo per noi, brindate tutti in suo onore! 🍻",
-      "groupSchedule": [
-        { "group": 1, "arrival": "18:50", "departure": "19:10" },
-        { "group": 2, "arrival": "19:15", "departure": "19:35" },
-        { "group": 3, "arrival": "19:40", "departure": "20:00" },
-        { "group": 4, "arrival": "20:05", "departure": "20:25" },
-        { "group": 5, "arrival": "20:30", "departure": "20:50" }
-      ]
+      "id": "g1.bici",
+      "day": "2026-05-31",
+      "time": "13:45",
+      "title": "Ritiro bici TIP (15 prenotate)",
+      "location": { "name": "TIP Bike Rental", "maps": "https://www.google.com/maps/search/?api=1&query=TIP+Amsterdam+North+IJpromenade+2" },
+      "notify": true,
+      "tplArrival": "🚲 Tra {lead} min ritiro delle *15 bici da TIP* (IJpromenade 2, Noord). Servono carta di credito per il deposito e un documento. {maps}"
     },
     {
-      "number": 6,
-      "name": "Il Vino Quotidiano",
-      "note": null,
-      "groupSchedule": [
-        { "group": 1, "arrival": "19:20", "departure": "19:40", "groupNote": "Viva la figa e chi la castiga porco de dio !" },
-        { "group": 2, "arrival": "19:45", "departure": "20:05" },
-        { "group": 3, "arrival": "20:10", "departure": "20:30", "groupNote": "Il Vino Quotidiano, ma noi beviamo birra DIO PORCO !" },
-        { "group": 4, "arrival": "20:35", "departure": "20:55" },
-        { "group": 5, "arrival": "21:00", "departure": "21:20" }
-      ]
+      "id": "g1.checkin",
+      "day": "2026-05-31",
+      "time": "15:00",
+      "title": "Check-in Clink NOORD",
+      "location": { "name": "Clink NOORD Hostel", "maps": "https://www.google.com/maps/search/?api=1&query=Clink+NOORD+Hostel+Amsterdam" },
+      "notify": true,
+      "tplArrival": "🛏️ Tra {lead} min *check-in al Clink NOORD* (15.00) + doccia. Ritrovo alla reception, camere già assegnate. {maps}"
     },
     {
-      "number": 7,
-      "name": "Pizzeria ai Barbari",
-      "note": "*TAPPA FOOD*: entrano solo i capi gruppo a ritirare le pizze.\nFate un pò di fondo che siamo solo a metà percorso.",
-      "groupSchedule": [
-        { "group": 1, "arrival": "19:41", "departure": "20:01" },
-        { "group": 2, "arrival": "20:06", "departure": "20:26" },
-        { "group": 3, "arrival": "20:31", "departure": "20:51" },
-        { "group": 4, "arrival": "20:56", "departure": "21:16", "groupNote": "Date 1 trancio a quel morto di fame del Trape"  },
-        { "group": 5, "arrival": "21:21", "departure": "21:41" }
-      ]
+      "id": "g1.libero",
+      "day": "2026-05-31",
+      "time": "16:30",
+      "title": "Pomeriggio libero (coffeeshop / crociera / giro bici)",
+      "location": { "name": "Centro / Noord", "maps": "https://www.google.com/maps/search/?api=1&query=Amsterdam+Centrum" },
+      "notify": false
     },
     {
-      "number": 8,
-      "name": "Vanity",
-      "note": "Godetevi la passaggiata attraverso il vecchio Bar Miglio Enterprise (Parco dei Cani). In questo locale anche le liti più funeste possono essere risolte con una birra! 🍻",
-      "groupSchedule": [
-        { "group": 1, "arrival": "20:11", "departure": "20:31", "groupNote": "Giuse non inveire contro *personaggi di colore* lungo la strada per piacere... " },
-        { "group": 2, "arrival": "20:36", "departure": "20:56" },
-        { "group": 3, "arrival": "21:01", "departure": "21:21" },
-        { "group": 4, "arrival": "21:26", "departure": "21:46" },
-        { "group": 5, "arrival": "21:51", "departure": "22:11" }
-      ]
+      "id": "g1.cannibale",
+      "day": "2026-05-31",
+      "time": "18:30",
+      "title": "Cena Cannibale Royale (prenotata)",
+      "location": { "name": "Cannibale Royale", "maps": "https://www.google.com/maps/search/?api=1&query=Cannibale+Royale+Handboogstraat+Amsterdam" },
+      "notify": true,
+      "tplArrival": "🍔 Tra {lead} min *cena al Cannibale Royale* (✅ prenotato 18.30, Handboogstraat 17a, Centro). Aperitivo + cena tutti insieme. {maps}"
     },
     {
-      "number": 9,
-      "name": "Fortuna Club",
-      "note": null,
-      "groupSchedule": [
-        { "group": 1, "arrival": "20:37", "departure": "20:57", "groupNote": "Se la fantasia vi manca  urlate un Porco Dio !" },
-        { "group": 2, "arrival": "21:02", "departure": "21:22" },
-        { "group": 3, "arrival": "21:27", "departure": "21:47" },
-        { "group": 4, "arrival": "21:52", "departure": "22:12", "groupNote": "Ciavatevi un porcosauro e urlate un Porco dio !" },
-        { "group": 5, "arrival": "22:17", "departure": "22:37" }
-      ]
+      "id": "g1.bret-trasf",
+      "day": "2026-05-31",
+      "time": "20:00",
+      "title": "Trasferimento verso Bret",
+      "location": { "name": "Bret · Sloterdijk", "maps": "https://www.google.com/maps/search/?api=1&query=Bret+Orlyplein+76+Amsterdam" },
+      "notify": true,
+      "tplArrival": "🎶 Tra {lead} min ci si sposta verso *Bret* (Orlyplein 76, Sloterdijk). In bici ~25 min dal centro, o treno Centraal → Sloterdijk (3 min). {maps}"
     },
     {
-      "number": 10,
-      "name": "Pergola",
-      "note": "🍝 *Tappa Pergola*: entrano solo i capi gruppo.\nRaccogliete *5€ a testa* fuori dal locale: sono compresi una pasta e una birra.",
-      "groupSchedule": [
-        { "group": 1, "arrival": "20:57", "departure": "21:17" },
-        { "group": 2, "arrival": "21:22", "departure": "21:42" },
-        { "group": 3, "arrival": "21:47", "departure": "22:07" },
-        { "group": 4, "arrival": "22:12", "departure": "22:32" },
-        { "group": 5, "arrival": "22:37", "departure": "22:57" }
-      ]
+      "id": "g1.bret",
+      "day": "2026-05-31",
+      "time": "21:00",
+      "title": "Bret (evento 17.00–02.00)",
+      "location": { "name": "Bret", "maps": "https://www.google.com/maps/search/?api=1&query=Bret+Orlyplein+76+Amsterdam" },
+      "notify": false
+    },
+
+    {
+      "id": "g2.brunch-ceuvel",
+      "day": "2026-06-01",
+      "time": "11:30",
+      "title": "Brunch Café de Ceuvel",
+      "location": { "name": "Café de Ceuvel", "maps": "https://www.google.com/maps/search/?api=1&query=Caf%C3%A9+de+Ceuvel+Amsterdam" },
+      "notify": true,
+      "tplArrival": "🥞 Tra {lead} min *brunch al Café de Ceuvel* (11.30, Korte Papaverweg 4, Noord). Ritrovo lì, poi si parte per il giro lungo. {maps}"
     },
     {
-      "number": 11,
-      "name": "La Corte",
-      "note": null,
-      "groupSchedule": [
-        { "group": 1, "arrival": "21:20", "departure": "21:40" },
-        { "group": 2, "arrival": "21:45", "departure": "22:05" },
-        { "group": 3, "arrival": "22:10", "departure": "22:30" },
-        { "group": 4, "arrival": "22:35", "departure": "22:55" },
-        { "group": 5, "arrival": "23:00", "departure": "23:20",  "groupNote": "Gruppo Verde devi vincere !" }
-      ]
+      "id": "g2.sluishuis",
+      "day": "2026-06-01",
+      "time": "13:00",
+      "title": "Bici verso Est → Sluishuis",
+      "location": { "name": "Sluishuis", "maps": "https://www.google.com/maps/search/?api=1&query=Sluishuis+IJburg+Amsterdam" },
+      "notify": false
     },
     {
-      "number": 12,
-      "name": "Wu",
-      "note": "CURIOSITA': sapevate che Wu ha fondato i Wu Tang Club ?",
-      "groupSchedule": [
-        { "group": 1, "arrival": "21:42", "departure": "22:02" },
-        { "group": 2, "arrival": "22:07", "departure": "22:27" },
-        { "group": 3, "arrival": "22:32", "departure": "22:52" },
-        { "group": 4, "arrival": "22:57", "departure": "23:17" },
-        { "group": 5, "arrival": "23:22", "departure": "23:42", "groupNote": "Gruppo Verde devi vincere !" }
-      ]
+      "id": "g2.depijp",
+      "day": "2026-06-01",
+      "time": "15:00",
+      "title": "De Pijp + Albert Cuypmarkt",
+      "location": { "name": "Albert Cuyp Markt", "maps": "https://www.google.com/maps/search/?api=1&query=Albert+Cuyp+Markt+Amsterdam" },
+      "notify": false
     },
     {
-      "number": 13,
-      "name": "Bar Peter Pan",
-      "isFinish": true,
-      "note": "Questa è l'ultima tappa del Miglio d'Oro! Sparatevi l'ultima birra e poi ritirate il vostro attestato dai vostri capigruppo! 🎉",
-      "groupSchedule": [
-        { "group": 1, "arrival": "22:02", "departure": "22:22" },
-        { "group": 2, "arrival": "22:27", "departure": "22:47" },
-        { "group": 3, "arrival": "22:52", "departure": "23:12" },
-        { "group": 4, "arrival": "23:17", "departure": "23:37", "groupNote": "Non scappate subito Manesi deve fare il suo diocan di Video, rimanete tutti lì!" },
-        { "group": 5, "arrival": "23:42", "departure": "23:59" }
-      ]
+      "id": "g2.museumplein",
+      "day": "2026-06-01",
+      "time": "16:00",
+      "title": "Museumplein / Rijksmuseum (esterno)",
+      "location": { "name": "Museumplein", "maps": "https://www.google.com/maps/search/?api=1&query=Museumplein+Amsterdam" },
+      "notify": false
+    },
+    {
+      "id": "g2.vondelpark",
+      "day": "2026-06-01",
+      "time": "16:45",
+      "title": "Vondelpark",
+      "location": { "name": "Vondelpark", "maps": "https://www.google.com/maps/search/?api=1&query=Vondelpark+Amsterdam" },
+      "notify": false
+    },
+    {
+      "id": "g2.waterlooplein",
+      "day": "2026-06-01",
+      "time": "17:30",
+      "title": "Waterlooplein (mercato)",
+      "location": { "name": "Waterlooplein", "maps": "https://www.google.com/maps/search/?api=1&query=Waterlooplein+Amsterdam" },
+      "notify": false
+    },
+    {
+      "id": "g2.barracuda",
+      "day": "2026-06-01",
+      "time": "20:00",
+      "title": "Cena Barracuda __ORARIO_DA_CONFERMARE__",
+      "location": { "name": "Restaurant Barracuda", "maps": "https://www.google.com/maps/search/?api=1&query=Restaurant+Barracuda+Aambeeldstraat+10+Amsterdam" },
+      "notify": false
+    },
+    {
+      "id": "g2.redlight",
+      "day": "2026-06-01",
+      "time": "21:30",
+      "title": "Red Light District (dopo-cena)",
+      "location": { "name": "De Wallen", "maps": "https://www.google.com/maps/search/?api=1&query=Red+Light+District+Amsterdam" },
+      "notify": false
+    },
+    {
+      "id": "g2.beertemple",
+      "day": "2026-06-01",
+      "time": "22:30",
+      "title": "Beer Temple (birre artigianali)",
+      "location": { "name": "Beer Temple", "maps": "https://www.google.com/maps/search/?api=1&query=Beer+Temple+Amsterdam" },
+      "notify": false
+    },
+
+    {
+      "id": "g3.colazione",
+      "day": "2026-06-02",
+      "time": "09:30",
+      "title": "Colazione (zona Jordaan)",
+      "location": { "name": "Jordaan", "maps": "https://www.google.com/maps/search/?api=1&query=Jordaan+Amsterdam" },
+      "notify": false
+    },
+    {
+      "id": "g3.jordaan",
+      "day": "2026-06-02",
+      "time": "10:30",
+      "title": "Giro a piedi: Jordaan + Nine Streets",
+      "location": { "name": "Nine Streets", "maps": "https://www.google.com/maps/search/?api=1&query=Nine+Streets+Amsterdam" },
+      "notify": false
+    },
+    {
+      "id": "g3.smartshop",
+      "day": "2026-06-02",
+      "time": "11:30",
+      "title": "🍄 Acquisto tartufi smartshop",
+      "location": { "name": "Tatanka / Kokopelli", "maps": "https://www.google.com/maps/search/?api=1&query=Tatanka+Amsterdam+Spuistraat" },
+      "notify": false
+    },
+    {
+      "id": "g3.foodhallen",
+      "day": "2026-06-02",
+      "time": "13:00",
+      "title": "Pranzo Foodhallen",
+      "location": { "name": "Foodhallen", "maps": "https://www.google.com/maps/search/?api=1&query=Foodhallen+Amsterdam" },
+      "notify": true,
+      "tplArrival": "🍽️ Tra {lead} min *pranzo alle Foodhallen* (13.00, Bellamyplein 51, Oud-West). Ritrovo lì tutti insieme prima dei tartufi. Mangiate bene ma non troppo 😉 {maps}"
+    },
+    {
+      "id": "g3.truffles",
+      "day": "2026-06-02",
+      "time": "14:30",
+      "title": "🍄 Truffles down",
+      "location": { "name": "Westerpark", "maps": "https://www.google.com/maps/search/?api=1&query=Westerpark+Amsterdam" },
+      "notify": true,
+      "tplArrival": "🍄 Tra {lead} min *si parte coi tartufi* (14.30). Restate uniti, idratatevi e ci spostiamo al Westerpark. Picco previsto 15.30–18.30."
+    },
+    {
+      "id": "g3.westerpark",
+      "day": "2026-06-02",
+      "time": "15:00",
+      "title": "Westerpark altered",
+      "location": { "name": "Westerpark", "maps": "https://www.google.com/maps/search/?api=1&query=Westerpark+Amsterdam" },
+      "notify": true,
+      "tplArrival": "🌳 Tra {lead} min ritrovo al *Westerpark* (15.00–19.00). Restiamo tutti nello stesso punto.\n⚠️ Servono *almeno 2 persone sobrie* per guidare il rientro Westerpark → Noord. {maps}"
+    },
+    {
+      "id": "g3.decompressione",
+      "day": "2026-06-02",
+      "time": "19:00",
+      "title": "Decompressione",
+      "location": { "name": "Westerpark", "maps": "https://www.google.com/maps/search/?api=1&query=Westerpark+Amsterdam" },
+      "notify": false
+    },
+    {
+      "id": "g3.rientro",
+      "day": "2026-06-02",
+      "time": "20:00",
+      "title": "Rientro a Noord + doccia",
+      "location": { "name": "Clink NOORD", "maps": "https://www.google.com/maps/search/?api=1&query=Clink+NOORD+Hostel+Amsterdam" },
+      "notify": false
+    },
+    {
+      "id": "g3.cena",
+      "day": "2026-06-02",
+      "time": "21:00",
+      "title": "Cena __LOCALE_DA_CONFERMARE__ (probabile Noord)",
+      "location": { "name": "Noord, vicino ostello", "maps": "https://www.google.com/maps/search/?api=1&query=Amsterdam+Noord" },
+      "notify": false
+    },
+    {
+      "id": "g3.chill",
+      "day": "2026-06-02",
+      "time": "22:30",
+      "title": "Serata chill",
+      "location": { "name": "Clink NOORD", "maps": "https://www.google.com/maps/search/?api=1&query=Clink+NOORD+Hostel+Amsterdam" },
+      "notify": false
+    },
+
+    {
+      "id": "g4.sveglia",
+      "day": "2026-06-03",
+      "time": "07:30",
+      "title": "Sveglia",
+      "location": { "name": "Clink NOORD", "maps": "https://www.google.com/maps/search/?api=1&query=Clink+NOORD+Hostel+Amsterdam" },
+      "notify": false
+    },
+    {
+      "id": "g4.brunch",
+      "day": "2026-06-03",
+      "time": "08:30",
+      "title": "Brunch veloce (Noord)",
+      "location": { "name": "Amsterdam Noord", "maps": "https://www.google.com/maps/search/?api=1&query=Amsterdam+Noord" },
+      "notify": false
+    },
+    {
+      "id": "g4.checkout",
+      "day": "2026-06-03",
+      "time": "09:30",
+      "title": "Check-out Clink NOORD",
+      "location": { "name": "Clink NOORD", "maps": "https://www.google.com/maps/search/?api=1&query=Clink+NOORD+Hostel+Amsterdam" },
+      "notify": true,
+      "tplArrival": "🧳 Tra {lead} min *check-out dal Clink NOORD* (09.30). Liberate le camere, zaini pronti, niente dimenticanze. {maps}"
+    },
+    {
+      "id": "g4.riconsegna-bici",
+      "day": "2026-06-03",
+      "time": "10:00",
+      "title": "Riconsegna bici TIP",
+      "location": { "name": "TIP Bike Rental", "maps": "https://www.google.com/maps/search/?api=1&query=TIP+Amsterdam+North+IJpromenade+2" },
+      "notify": true,
+      "tplArrival": "🚲 Tra {lead} min *riconsegna delle 15 bici da TIP* (10.00, IJpromenade 2). Tutte insieme, controllate lucchetti e accessori. {maps}"
+    },
+    {
+      "id": "g4.treno-schiphol",
+      "day": "2026-06-03",
+      "time": "10:30",
+      "title": "Treno Centraal → Schiphol",
+      "location": { "name": "Amsterdam Centraal", "maps": "https://www.google.com/maps/search/?api=1&query=Amsterdam+Centraal+Station" },
+      "notify": true,
+      "tplArrival": "🚆 Tra {lead} min *treno Centraal → Schiphol* (10.30). Traghetto + stazione, biglietti pronti. Compatti!"
+    },
+    {
+      "id": "g4.checkin-volo",
+      "day": "2026-06-03",
+      "time": "11:00",
+      "title": "Check-in volo",
+      "location": { "name": "Schiphol Airport", "maps": "https://www.google.com/maps/search/?api=1&query=Schiphol+Airport" },
+      "notify": true,
+      "tplArrival": "🛫 Tra {lead} min *check-in volo a Schiphol* (11.00). Carte d'imbarco e documenti alla mano, drop bagagli. {maps}"
+    },
+    {
+      "id": "g4.decollo",
+      "day": "2026-06-03",
+      "time": "13:50",
+      "title": "Decollo AMS → VCE",
+      "location": { "name": "Schiphol Airport", "maps": "https://www.google.com/maps/search/?api=1&query=Schiphol+Airport" },
+      "notify": true,
+      "tplArrival": "✈️ Tra {lead} min *decollo* (13.50). Al gate tutti, telefoni in modalità aereo. Si torna a casa — è stata gloria! 🇳🇱"
     }
   ]
 }
