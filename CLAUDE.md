@@ -4,55 +4,135 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Single-file Node.js bot (Baileys/WhatsApp Web) that drives the messaging for the "Miglio d'Oro" pub-crawl event. One account, multiple groups, a fixed timetable per group across ~13 stops. Italian-language messages.
+A WhatsApp bot (Baileys, single account, **one group**) that drives the messaging
+for the **Amsterdam group trip** (30/05 prep → 03/06 return flight, 2026, ~15
+people). Italian-language messages. It is an adaptation of the original "Miglio
+d'Oro" pub-crawl bot — the git history and `amsterdam_plan_draft.md` (in the parent
+dir) are the domain source.
+
+### Key differences from the Miglio bot
+
+- **Multi-day, not single-day**: events span 5 calendar days. Each stop carries an
+  explicit `day` (`YYYY-MM-DD`) + `time` (`HH:MM`); globals carry a full ISO
+  `datetime`. All Dates are absolute.
+- **Selective reminders, no cascade**: a stop generates a reminder **only** if
+  `notify: true`, and exactly **one** reminder, `leadTime` minutes before. There is
+  no `[5,2]` lead-time cascade, no `arrival`/`departure`, no per-stop games.
+- **One group**, not five. No `re_regina`/mention logic, no `afterMiglio`.
+- **`run` is continuous**: one process started on 30/05 schedules *all* future
+  events of the trip in one go (`setTimeout`; 5-day delays are well under Node's
+  ~24.8-day limit). `state.json` is **not** wiped at midnight.
+- **Inbound command router**: the bot answers `/oggi`, `/domani`, `/prossimo`,
+  `/dove`, `/help` in the configured group or in DM from the admin.
+
+## Architecture
+
+`index.js` is just the CLI entrypoint + command orchestration. Logic lives in `lib/`:
+
+- `lib/config.js` — `loadConfig()` reads `schedule.json`, validates the new schema
+  (trip/group/stops/globals, date+time formats, unique ids), and sets
+  `process.env.TZ = trip.timezone` (`Europe/Amsterdam`) so all Date math is correct
+  regardless of host TZ. `hasPlaceholderGroup()` flags the `REPLACE_WITH` JID.
+- `lib/time.js` — date/time helpers: `parseDayTime(day,time)`, `parseISO(datetime)`
+  (both build **local** Dates = trip TZ), `dayKey`, `fmtDateTime`, `dayLabel`
+  (Italian weekday), `resolveFilterDate()` (reads `EVENT_DATE`), `sleep`.
+- `lib/events.js` — `buildEvents(cfg, filterDay?)` expands the config into a
+  time-sorted list. Produces **only**: a `reminder` per `notify:true` stop
+  (`when = day+time − leadTime`) and a `global` per `globalAnnouncements`. Event ids
+  are deterministic: `pre:<stop.id>`, `global:<ann.id>` — the idempotency key.
+  `reminderText()` builds the message (custom `tplArrival` or a default template);
+  `effectiveGroupId()` resolves `TEST_JID || group.whatsappId`.
+- `lib/state.js` — `loadState`/`markSent`/`clearState`. `state.json` is the
+  sent-event ledger that makes `run` safe to restart.
+- `lib/whatsapp.js` — `createSession()` (Baileys connection lifecycle, unchanged
+  from the Miglio bot + an `onMessages` hook re-attached on every reconnect),
+  `makeSender(session,cfg)` → `{ sendThrottled, notifyAdmin, waitForSocket }`
+  (throttle = `minDelayMs` + jitter up to `maxDelayMs`), and
+  `makeInboundRouter({cfg,sender,ctxFactory})`.
+- `lib/scheduler.js` — `planTrip({cfg,sender,state,filterDay})` schedules every
+  future event via `setTimeout`, skipping past (>30s) and already-sent events, and
+  appends the id to `state.json` on fire.
+- `lib/context.js` — `makeCtx(cfg, nowOverride?)` builds the `ctx` for command
+  handlers (`today`, `tomorrow`, `stopsForDay`, `stopDateTime`, `dayLabel`).
+- `lib/commands/` — one file per command (`oggi`, `domani`, `prossimo`, `dove`,
+  `help`), each `module.exports = { desc, handler:async(args,ctx)=>string }`.
+  `_registry.js` maps name→command and exposes `dispatch(text, ctx)`.
+
+### Inbound security
+
+`makeInboundRouter` answers **only** if the message comes from the configured group
+(`group.whatsappId` or the `TEST_JID` override) **or** is a DM from `adminChatId`.
+Everything else is ignored silently (no leak that a bot exists).
 
 ## Commands
 
 ```
 npm install
-node index.js setup            # one-time QR pairing; writes ./auth
-node index.js groups [names…]  # list joined WhatsApp groups + JIDs (optional exact-name filter)
-node index.js validate         # validate schedule.json + show event counts
-node index.js schedule         # dry-run: print every message that would be sent, in order
-node index.js run              # production: connect + schedule timers for the day
+node index.js setup                  # one-time QR pairing; writes ./auth
+node index.js groups [names…]        # list joined groups + JIDs (optional exact-name filter)
+node index.js validate               # validate schedule.json + show event counts
+node index.js schedule               # dry-run: print every message, in order
+node index.js next                   # the next 10 scheduled things
+node index.js run                    # production: connect + schedule the whole trip
 ```
 
-There is no test suite, no linter, no build step. `validate` and `schedule` are the only "tests" — run them after editing `schedule.json`.
+### Test commands (no WhatsApp send unless noted)
 
-`EVENT_DATE=YYYY-MM-DD` overrides the event day (default: today). Useful when previewing or rehearsing on a non-event day.
+- `node index.js test-command "/oggi"` — run a command handler locally, print the
+  reply. Works with any command. Honors `EVENT_DATE` to simulate another day.
+- `node index.js test-send <jid> <msg>` — send an arbitrary message to a JID
+  (throttled). Sanity check before the event.
+- `node index.js test-day <YYYY-MM-DD> [<jid>]` — send NOW, in sequence, every
+  message that day would produce. `<jid>` optional = a test group; otherwise the
+  configured group (or `TEST_JID`). Simulates a whole day in ~1 minute.
+- `node index.js test-stop <stop_id> [<jid>]` — send NOW the reminder of a single
+  stop, to test its template.
 
-## Architecture
+> Note: on **git-bash (MSYS)** a leading `/` in an argument is rewritten to a
+> Windows path, so `test-command "/oggi"` mis-parses. Use **PowerShell or cmd**
+> (and npm scripts run under cmd, so `npm run test:commands` is fine).
 
-Everything lives in `index.js`. The pipeline is:
+### npm scripts
 
-1. **`loadConfig()`** reads `schedule.json` and sets `process.env.TZ` from `event.timezone` so all `Date` math runs in Europe/Rome regardless of host TZ.
-2. **`buildEvents(cfg, eventDate)`** expands the config into a flat, time-sorted list of events. Each `stop × group` produces up to 4 events:
-   - `arrival` (skipped when `stop.isStart` — handled by `globalAnnouncements` instead)
-   - `prenotify` for each value in `event.leadTimes` (default `[5, 2]` minutes before departure)
-   - `departure` (skipped on the last stop, i.e. when there is no `stop.number + 1`)
-   - Plus one `global` broadcast per `globalAnnouncements` entry (sent to every group).
-   Event IDs are deterministic (`arr:s2:g3`, `pre:s2:g3:l5`, `dep:s2:g3`, `global:16:30`) — this is the idempotency key.
-3. **`cmdRun()`** schedules each future event via `setTimeout` (not `node-cron` — cron only drives the 10-minute heartbeat). Past events (>30s late) are skipped. On fire, sends via `sendThrottled` which enforces `throttle.minDelayMs` + random jitter up to `maxDelayMs` to avoid WhatsApp rate-limits, then appends the event id to `state.json`.
-4. **`state.json`** is the sent-event ledger — the only thing that makes `run` safe to restart mid-event. Delete it to re-send everything; keep it to resume.
+`validate`, `dry-run` (alias of `schedule`), `next`, `test:commands` (runs the five
+handlers; fails if any throws), `start` (= `run`), `setup`, `groups`.
 
-### Connection lifecycle (`connect()`)
+## Environment variables
 
-Baileys quirks worth knowing before touching this:
-- `setup` triggers a `DisconnectReason.restartRequired` right after pairing — the code auto-reconnects, then sleeps 15s to let initial sync (chats/groups/contacts) finish before exiting. Without that wait, `groups` returns an empty list.
-- On `loggedOut` the auth dir must be wiped manually (`rm -rf auth`) and `setup` re-run.
-- Other disconnects auto-reconnect after 5s if the socket was previously open; otherwise the promise rejects.
-- `printQRInTerminal` is disabled in Baileys options — QR rendering is done manually via `qrcode-terminal` so it only shows during `setup`.
+- `EVENT_DATE=YYYY-MM-DD` — in `schedule`/`next`/`test-command`, filters to that
+  single day. In `run` (continuous) it's optional; if set, only that day is
+  scheduled.
+- `TEST_JID=<jid>` — overrides `group.whatsappId` for `run`/`test-day`/`test-stop`,
+  so you can point the bot at a throwaway test group without editing `schedule.json`.
 
 ## schedule.json shape
 
-- `event.timezone` — IANA TZ, applied process-wide.
-- `event.leadTimes` — minutes-before-departure for prenotify messages. Each value gets its own templated message in `tplPrenotify` (5 and 2 have custom copy; others fall through to a generic line).
-- `groups[].id` is a small integer used inside `stops[].groupSchedule[].group`; `whatsappId` is the real JID (`…@g.us`). `loadConfig` cross-checks that every `groupSchedule.group` resolves to a known group id.
-- `stops[]` ordered by `number`. `isStart: true` suppresses the arrival message (the global 16:30 announcement covers it). `isFinish: true` swaps the arrival template for the finish-line copy.
-- `adminChatId` receives a startup ping and per-event error notifications. Placeholder strings matching `/REPLACE_WITH/` are detected and block `run`.
+- `trip` — `name`, `timezone` (IANA, applied process-wide), `days` (array of
+  `YYYY-MM-DD`; every `stop.day` must be in it).
+- `group` — `{ whatsappId, name }`. One group only.
+- `adminChatId` — receives startup ping + per-event error notifications.
+  `REPLACE_WITH…` placeholders block `run`.
+- `throttle` — `minDelayMs` / `maxDelayMs`.
+- `defaults.leadTime` — fallback minutes-before for reminders (per-stop `leadTime`
+  overrides; final fallback 20).
+- `stops[]` — `id` (unique), `day`, `time`, `title`, optional `location{name,maps}`,
+  `notify` (default false), `leadTime`, `tplArrival` (template with tokens
+  `{maps} {name} {title} {time} {lead}`). Stops with `notify:false` still appear in
+  `/oggi`/`/dove` — they're info, not reminders.
+- `globalAnnouncements[]` — `id`, `datetime` (ISO `YYYY-MM-DDTHH:MM[:SS]`), `text`.
+
+**TBD reservations** (e.g. cena Barracuda, cena G3) live as `notify:false` stops
+with a `__…_DA_CONFERMARE__` marker in the title. When the time is confirmed, set
+the real `time` and flip `notify:true`.
 
 ## Files
 
 - `auth/` — Baileys multi-file auth state. **Never commit.** Wipe to re-pair.
-- `state.json` — sent-event ledger for idempotency. Safe to delete between events.
-- `schedule.json` — the entire event timetable + group JIDs + admin chat. Edit this, not `index.js`, to change timings or copy.
+- `state.json` — sent-event ledger (idempotency). Safe to delete to re-send.
+- `schedule.json` — the entire trip timetable. Edit this, not the code.
+- `logs/` — daily `bot-YYYY-MM-DD.log`.
+
+## Workflow after editing schedule.json
+
+`npm run validate` → `node index.js schedule` (or per-day with `EVENT_DATE`) →
+`node index.js test-day <date> <test_jid>` for a live dry-run → `node index.js run`.
