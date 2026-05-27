@@ -1,7 +1,7 @@
 {
-  "name": "miglio-bot-v2",
-  "version": "1.0.0",
-  "description": "Bot WhatsApp Miglio d'Oro 2026 - versione semplificata con Baileys",
+  "name": "amsterdam-bot",
+  "version": "2.0.0",
+  "description": "Bot WhatsApp per il viaggio di gruppo a Amsterdam 2026 (Baileys, multi-day, promemoria selettivi)",
   "main": "index.js",
   "type": "commonjs",
   "engines": {
@@ -12,6 +12,9 @@
     "groups": "node index.js groups",
     "validate": "node index.js validate",
     "schedule": "node index.js schedule",
+    "dry-run": "node index.js schedule",
+    "next": "node index.js next",
+    "test:commands": "node index.js test-command \"/oggi\" && node index.js test-command \"/domani\" && node index.js test-command \"/prossimo\" && node index.js test-command \"/dove test\" && node index.js test-command \"/help\"",
     "start": "node index.js run"
   },
   "dependencies": {
