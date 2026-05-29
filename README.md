@@ -66,7 +66,9 @@ Rispondono solo nel gruppo configurato o in DM dall'admin:
 | `/dove <nome>` | Cerca un luogo nel piano |
 | `/meteo` | Previsioni oggi + domani (open-meteo) |
 | `/presente` | Appello: chi c'è? (reagite 👍) · `/presente stop` chiude |
-| `/bici` `/spese` `/valigia` `/casa` `/mezzi` `/sos` | Info utili (noleggio, Splitwise, checklist, ostello, trasporti, emergenze) |
+| `/bici` `/valigia` `/casa` `/mezzi` `/sos` | Info utili (noleggio, checklist, ostello, trasporti, emergenze) |
+| `/mvp @nome punti motivo` | Assegna punti MVP (budget giornaliero per votante) · senza argomenti mostra budget + classifica |
+| `/classifica` | Classifica MVP corrente |
 | `/help` | Elenco comandi |
 
 Ogni mattina dei giorni ad Amsterdam il bot manda un **messaggio "Buongiorno"** che

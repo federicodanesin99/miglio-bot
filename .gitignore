@@ -1,6 +1,7 @@
 node_modules/
 auth/
 state.json
+votes.json
 *.log
 logs/
 .env

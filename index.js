@@ -13,6 +13,7 @@
 //   node index.js test-command "/oggi"   — esegue un comando in locale (no WA)
 //   node index.js test-send <jid> <msg>  — invia un messaggio arbitrario
 //   node index.js test-day <YYYY-MM-DD> [jid] — manda ORA tutti i msg del giorno
+//   node index.js test-all [jid]              — manda ORA tutti i msg del viaggio
 //   node index.js test-stop <stop_id> [jid]   — manda ORA il reminder di una stop
 //
 // ENV: EVENT_DATE=YYYY-MM-DD filtra schedule/next/test-command al giorno.
@@ -28,6 +29,7 @@ const { createSession, makeSender, makeInboundRouter, AUTH_DIR } = require('./li
 const { planTrip } = require('./lib/scheduler');
 const { makeCtx } = require('./lib/context');
 const { makeRollCall } = require('./lib/rollcall');
+const { makeMvp } = require('./lib/mvp');
 const { dispatch } = require('./lib/commands/_registry');
 const { fmtDateTime, resolveFilterDate, parseDayTime, sleep, dayLabel } = require('./lib/time');
 
@@ -184,18 +186,48 @@ async function cmdTestDay() {
   const day = process.argv[3];
   const jid = process.argv[4] || null;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day || '')) { log.error('Uso: node index.js test-day <YYYY-MM-DD> [<jid>]'); process.exit(1); }
-  const events = buildEvents(cfg, day);
+  // mvp store reale così un eventuale reveal nel giorno usa la classifica vera (con tag).
+  const mvp = makeMvp({ dailyBudget: cfg.mvp?.dailyBudget, names: cfg.mvp?.names || {} });
+  const events = buildEvents(cfg, day, { mvp });
   if (!events.length) { log.warn(`Nessun evento per ${day}`); process.exit(0); }
   const session = await createSession({ printQr: false });
   const sender = makeSender(session, cfg);
   const target = jid || effectiveGroupId(cfg);
   log.info(`Invio ${events.length} messaggi di ${day} a ${target}…`);
   for (const ev of events) {
-    const text = ev.build ? await ev.build() : ev.text;
-    await sender.sendThrottled(target, text);
+    const out = ev.build ? await ev.build() : ev.text;
+    const text = typeof out === 'string' ? out : out.text;
+    const mentions = typeof out === 'string' ? null : out.mentions;
+    await sender.sendThrottled(target, text, mentions);
     log.ok(`${ev.id} → inviato`);
   }
   log.ok('test-day completato');
+  await session.end();
+  process.exit(0);
+}
+
+// test-all: manda ORA, in sequenza, TUTTI i messaggi del viaggio (tutti i giorni:
+// intro, global, buongiorno, reminder, reveal MVP). Invia al gruppo configurato
+// (o TEST_JID), oppure al jid passato. Per provare l'intero flusso in un colpo.
+async function cmdTestAll() {
+  const cfg = loadConfig();
+  const jid = process.argv[3] || null;
+  const mvp = makeMvp({ dailyBudget: cfg.mvp?.dailyBudget, names: cfg.mvp?.names || {} });
+  const events = buildEvents(cfg, null, { mvp }); // niente filterDay = tutto il viaggio
+  if (!events.length) { log.warn('Nessun evento da inviare.'); process.exit(0); }
+  const target = jid || effectiveGroupId(cfg);
+  log.warn(`⚠️  Sto per inviare TUTTI i ${events.length} messaggi del viaggio a ${target}.`);
+  const session = await createSession({ printQr: false });
+  const sender = makeSender(session, cfg);
+  log.info(`Invio ${events.length} messaggi…`);
+  for (const ev of events) {
+    const out = ev.build ? await ev.build() : ev.text;
+    const text = typeof out === 'string' ? out : out.text;
+    const mentions = typeof out === 'string' ? null : out.mentions;
+    await sender.sendThrottled(target, text, mentions);
+    log.ok(`${ev.id} → inviato`);
+  }
+  log.ok('test-all completato');
   await session.end();
   process.exit(0);
 }
@@ -248,7 +280,11 @@ async function cmdRun() {
       return Math.max(0, (meta.participants?.length || 1) - 1);
     },
   });
-  const ctxFactory = () => ({ ...makeCtx(cfg), rollcall });
+  const mvp = makeMvp({
+    dailyBudget: cfg.mvp?.dailyBudget,
+    names: cfg.mvp?.names || {},
+  });
+  const ctxFactory = (meta = {}) => ({ ...makeCtx(cfg), rollcall, mvp, ...meta });
 
   log.info(`Viaggio: ${cfg.trip.name}`);
   log.info(`Gruppo: ${cfg.group.name} (${effectiveGroupId(cfg)})`);
@@ -267,7 +303,25 @@ async function cmdRun() {
   sender = makeSender(session, cfg);
   router = makeInboundRouter({ cfg, sender, ctxFactory, rollcall });
 
-  const { scheduled, skipped, events } = planTrip({ cfg, sender, state, filterDay });
+  // Roster MVP: chi può ricevere/dare punti = partecipanti del gruppo.
+  // Fetch iniziale + refresh periodico (gruppo stabile, ma gli ingressi capitano).
+  const refreshRoster = async () => {
+    try {
+      const jid = effectiveGroupId(cfg);
+      if (!jid.endsWith('@g.us')) return;
+      const sock = await sender.waitForSocket();
+      const meta = await sock.groupMetadata(jid);
+      const jids = (meta.participants || []).map((p) => p.id).filter(Boolean);
+      mvp.setParticipants(jids);
+      log.info(`👥 Roster MVP aggiornato: ${jids.length} partecipanti.`);
+    } catch (e) {
+      log.warn(`Roster MVP non aggiornato: ${e.message}`);
+    }
+  };
+  await refreshRoster();
+  cron.schedule('0 */6 * * *', refreshRoster); // ogni 6 ore
+
+  const { scheduled, skipped, events } = planTrip({ cfg, sender, state, filterDay, deps: { mvp } });
   log.ok(`📅 Schedulati ${scheduled} eventi (skip: ${skipped})${filterDay ? ` — giorno ${filterDay}` : ''}`);
 
   await sender.notifyAdmin(
@@ -309,6 +363,7 @@ const cmds = {
   'test-command': cmdTestCommand,
   'test-send': cmdTestSend,
   'test-day': cmdTestDay,
+  'test-all': cmdTestAll,
   'test-stop': cmdTestStop,
 };
 
@@ -327,6 +382,7 @@ Comandi:
   test-command "/oggi"       Esegue un comando in locale, senza WhatsApp
   test-send <jid> <msg>      Invia un messaggio arbitrario a un JID
   test-day <data> [jid]      Manda ORA tutti i messaggi di quel giorno
+  test-all [jid]             Manda ORA tutti i messaggi del viaggio in un colpo
   test-stop <stop_id> [jid]  Manda ORA il reminder di una singola tappa
 
 ENV:

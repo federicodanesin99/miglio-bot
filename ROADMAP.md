@@ -13,8 +13,12 @@ trovi breadcrumb `// future: <feature>` nei punti naturali di aggancio.
   risponde con una mini-mappa / lista "chi è dove".
 - **Mini-galleria foto** — il bot raccoglie le foto postate nel gruppo per giorno e
   a fine viaggio genera un riassunto / album.
-- **`/vota <domanda>` — votazioni democratiche** — sondaggi rapidi (es. "dove si
-  cena?") con conteggio reazioni.
+- ~~**Votazione MVP del viaggio**~~ ✅ **Fatto** (`/mvp`, `/classifica`). Ogni
+  partecipante ha un budget giornaliero di punti (`mvp.dailyBudget`) da assegnare agli
+  altri con `/mvp @nome punti motivo`; classifica live con `/classifica` e reveal
+  finale a `mvp.reveal`. Persistenza in `votes.json` (`lib/mvp.js`).
+- **`/vota <domanda>` — sondaggi rapidi** — sondaggi estemporanei (es. "dove si
+  cena?") con conteggio reazioni. (Diverso dall'MVP: voto singolo a tema, non punti.)
 
 ## Utility
 

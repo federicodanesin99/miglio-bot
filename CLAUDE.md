@@ -23,8 +23,14 @@ dir) are the domain source.
   events of the trip in one go (`setTimeout`; 5-day delays are well under Node's
   ~24.8-day limit). `state.json` is **not** wiped at midnight.
 - **Inbound command router**: the bot answers `/oggi`, `/domani`, `/prossimo`,
-  `/dove`, `/meteo`, `/presente`, `/bici`, `/spese`, `/valigia`, `/casa`, `/mezzi`,
-  `/sos`, `/help` in the configured group or in DM from the admin.
+  `/dove`, `/meteo`, `/presente`, `/bici`, `/valigia`, `/casa`, `/mezzi`,
+  `/sos`, `/mvp`, `/classifica`, `/help` in the configured group or in DM from the admin.
+- **MVP point-voting**: `/mvp @nome punti [motivo]` lets participants award points to
+  others during the trip (`lib/mvp.js`, persisted to `votes.json`). Each voter has a
+  daily budget (`mvp.dailyBudget`, default 10), no self-voting; the budget is the
+  fairness mechanism (no statistical normalisation). `/classifica` shows the live
+  standings; a scheduled `mvp:reveal` event reveals the final leaderboard at
+  `mvp.reveal`.
 - **Morning "Buongiorno" message**: one automatic message each Amsterdam day
   (`lib/morning.js`) merging the day's program + weather brief. The on-demand
   `/meteo` command shows today+tomorrow. See `lib/weather.js`.
@@ -66,8 +72,17 @@ dir) are the domain source.
   state machine. `start(msgKey)` ties the roll-call to the appello message; the
   router calls `matchesKey()`+`record(jid,emoji)` on each reaction; `statusText()` /
   `close()` report the tally. No persistence — a roll-call is for the moment.
+- `lib/mvp.js` — `makeMvp({dailyBudget, names})`: **persistent** MVP point-voting
+  store (`votes.json`). Keeps raw vote records so it can recompute daily budgets.
+  `castVote()` enforces the rules (no self-vote, recipient ∈ roster, daily budget).
+  `setParticipants()` is fed from the group roster in `run`. The text builders
+  (`leaderboardText()`/`revealText()`/`statusText()`) return **`{ text, mentions }`**:
+  each participant is rendered via `nameToken(jid)` — a config `mvp.names` nickname is
+  shown as plain text, otherwise the person is **@-mentioned** (jid pushed into
+  `mentions`) so WhatsApp shows their contact name + pings them. `sendThrottled` and
+  the reply protocol carry the `mentions` array through.
 - `lib/state.js` — `loadState`/`markSent`/`clearState`. `state.json` is the
-  sent-event ledger that makes `run` safe to restart.
+  sent-event ledger that makes `run` safe to restart (separate from `votes.json`).
 - `lib/whatsapp.js` — `createSession()` (Baileys connection lifecycle, unchanged
   from the Miglio bot + an `onMessages` hook re-attached on every reconnect),
   `makeSender(session,cfg)` → `{ sendThrottled, notifyAdmin, waitForSocket }`
@@ -75,17 +90,22 @@ dir) are the domain source.
   the Baileys send result, whose `.key` lets `/presente` attach reactions), and
   `makeInboundRouter({cfg,sender,ctxFactory,rollcall})`. The router also handles
   `reactionMessage` upserts (feeding `rollcall`) and command replies that return
-  `{ text, after(sent) }` instead of a plain string.
-- `lib/scheduler.js` — `planTrip({cfg,sender,state,filterDay})` schedules every
+  `{ text, after(sent) }` instead of a plain string. It calls `ctxFactory(meta)` with
+  per-message `{ voter, mentions, pushName, ts }` (the voter JID + `mentionedJid`)
+  so `/mvp` knows who votes for whom.
+- `lib/scheduler.js` — `planTrip({cfg,sender,state,filterDay,deps})` schedules every
   future event via `setTimeout`, skipping past (>30s) and already-sent events, and
-  appends the id to `state.json` on fire.
+  appends the id to `state.json` on fire. `deps` (e.g. `{mvp}`) is forwarded to
+  `buildEvents` for dynamic events like the `mvp:reveal` leaderboard.
 - `lib/context.js` — `makeCtx(cfg, nowOverride?)` builds the `ctx` for command
   handlers (`today`, `tomorrow`, `stopsForDay`, `stopDateTime`, `dayLabel`). In `run`
-  the ctx is spread with `rollcall` so `/presente` can reach it (test paths omit it).
+  the ctx is spread with `rollcall`, `mvp` and the per-message `meta` (`voter`,
+  `mentions`, …) so `/presente`/`/mvp` can reach them (test paths omit them).
 - `lib/commands/` — one file per command (`oggi`, `domani`, `prossimo`, `dove`,
-  `meteo`, `presente`, `bici`, `spese`, `valigia`, `casa`, `mezzi`, `sos`, `help`),
+  `meteo`, `presente`, `bici`, `valigia`, `casa`, `mezzi`, `sos`, `mvp`,
+  `classifica`, `help`),
   each `module.exports = { desc, handler:async(args,ctx)=>string|{text,after} }`. The
-  static info commands (`bici`/`spese`/`valigia`/`casa`/`mezzi`/`sos`) are built by
+  static info commands (`bici`/`valigia`/`casa`/`mezzi`/`sos`) are built by
   the `_info.js` factory and just return `cfg.info.<key>`. `_registry.js` maps
   name→command and exposes `dispatch(text, ctx)`.
 
@@ -118,6 +138,10 @@ node index.js run                    # production: connect + schedule the whole 
 - `node index.js test-day <YYYY-MM-DD> [<jid>]` — send NOW, in sequence, every
   message that day would produce. `<jid>` optional = a test group; otherwise the
   configured group (or `TEST_JID`). Simulates a whole day in ~1 minute.
+- `node index.js test-all [<jid>]` — send NOW, in sequence, **every** message of the
+  whole trip (intro, globals, mornings, reminders, MVP reveal). `<jid>` optional;
+  otherwise the configured group (or `TEST_JID`). **Point it at a throwaway group** —
+  it floods the target with the entire trip's messages in one go.
 - `node index.js test-stop <stop_id> [<jid>]` — send NOW the reminder of a single
   stop, to test its template.
 
@@ -160,7 +184,14 @@ command handler; fails if any throws), `start` (= `run`), `setup`, `groups`.
   event even when `enabled:false` (then the message just omits the weather section);
   `/meteo` needs `enabled`.
 - `info` (optional) — free-form `{ <key>: <text> }` map powering the static commands
-  `/bici`, `/spese`, `/valigia`, `/casa`, `/mezzi`, `/sos`. Edit text here, not code.
+  `/bici`, `/valigia`, `/casa`, `/mezzi`, `/sos`. Edit text here, not code.
+- `intro` (optional) — `datetime` (ISO) for a one-off **bot presentation** message
+  that introduces itself and lists the commands (built live from the command
+  registry via `events.js` → `introText()`, so it stays in sync). Placed on the
+  departure morning so `/mvp` isn't advertised before the trip starts.
+- `mvp` (optional) — MVP point-voting. `dailyBudget` (number > 0, default 10),
+  `reveal` (ISO datetime for the final-leaderboard event), `names` (`{ jid: label }`
+  map to make the leaderboard readable; learned pushNames fill the rest).
 
 **TBD reservations** (e.g. cena Barracuda, cena G3) live as `notify:false` stops
 with a `__…_DA_CONFERMARE__` marker in the title. When the time is confirmed, set
@@ -170,6 +201,8 @@ the real `time` and flip `notify:true`.
 
 - `auth/` — Baileys multi-file auth state. **Never commit.** Wipe to re-pair.
 - `state.json` — sent-event ledger (idempotency). Safe to delete to re-send.
+- `votes.json` — MVP vote ledger (raw vote records + learned names). Delete to reset
+  the standings.
 - `schedule.json` — the entire trip timetable. Edit this, not the code.
 - `logs/` — daily `bot-YYYY-MM-DD.log`.
 
