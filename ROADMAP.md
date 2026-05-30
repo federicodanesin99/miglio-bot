@@ -29,7 +29,9 @@ trovi breadcrumb `// future: <feature>` nei punti naturali di aggancio.
   "Buongiorno" (`lib/morning.js`, evento `morning`) che fonde programma + meteo;
   comando `/meteo` on-demand. Modulo `lib/weather.js`, open-meteo (no API key).
 - **`/chiedi <domanda>` — LLM concierge** — risposte libere su Amsterdam / piano
-  viaggio via API LLM. Richiede una dipendenza e una chiave.
+  viaggio via API LLM. Tentato con Google Gemini (tier gratuito), ma accantonato: la
+  API key disponibile aveva quota free a 0 (`limit: 0`). Richiede una chiave con quota
+  valida (o un provider a pagamento).
 - **Diario di bordo serale** — messaggio automatico a fine giornata che riepiloga le
   tappe fatte e chiede "com'è andata?".
 
