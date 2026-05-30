@@ -258,6 +258,11 @@ async function cmdRun() {
   const logFile = initFileLog();
   log.info(`📝 File di log: ${logFile}`);
 
+  // Cintura di sicurezza: una rejection/eccezione sfuggita non deve terminare
+  // un processo che resta vivo per l'intero viaggio (5 giorni). Logga e prosegue.
+  process.on('unhandledRejection', (e) => log.error(`unhandledRejection: ${e?.message ?? e}`));
+  process.on('uncaughtException', (e) => log.error(`uncaughtException: ${e?.message ?? e}`));
+
   const cfg = loadConfig();
   if (hasPlaceholderGroup(cfg)) {
     log.error('group.whatsappId è un placeholder. Esegui "node index.js groups" e popola schedule.json.');
