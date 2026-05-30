@@ -24,6 +24,7 @@
     "casa": "🛏️ *Ostello — Clink NOORD*\n📍 Amsterdam Noord\nhttps://www.google.com/maps/search/?api=1&query=Clink+NOORD+Hostel+Amsterdam\n\n• Check-in: dom 31/05 ore 15.00\n• Check-out: mer 03/06 ore 09.30\n🔗 https://www.clinkhostels.com/amsterdam/clinknoord/",
     "mezzi": "🚆 *Spostamenti*\n\n• Schiphol ⟷ Centraal: treno diretto NS, ~15 min\n• Centraal ⟷ Noord: traghetto GRATIS 24/7, bici incluse (linea Buiksloterweg, dietro la stazione)\n• In città: bici (vedi /bici) — ciclabili ovunque, tieni la destra e segnala con la mano\n• Tram/bus/metro GVB: carta contactless o OVpay",
     "sos": "🆘 *Emergenze e numeri utili*\n\n• Emergenze (polizia/ambulanza/pompieri): *112*\n• Polizia non urgente (NL): 0900-8844\n• Referente gruppo: +39 346 430 7504\n• Ambasciata d'Italia – L'Aia: +31 70 302 1030\n• Ostello Clink NOORD: https://www.google.com/maps/search/?api=1&query=Clink+NOORD+Hostel+Amsterdam\n\nTenete una foto dei documenti sul telefono.",
+    "spese": "💶 *Spese condivise — Splitwise*\n\nButtate ogni spesa di gruppo qui dentro, così a fine viaggio i conti tornano da soli:\n👉 https://www.splitwise.com/join/oCJ9DxFD8tW+1d51zj?v=e\n\n• Segnate chi ha anticipato e per chi era\n• Foto degli scontrini nel gruppo, importi su Splitwise\n• A fine viaggio si salda tutto in un colpo, senza litigare 😉",
     "_nota": "Numeri ambasciata/polizia DA VERIFICARE prima del viaggio."
   },
 
@@ -49,6 +50,65 @@
       "text": "⏰ *Sveglia — giorno del ritorno.*\n\nVolo AMS → VCE alle *13.50*. Oggi è pura logistica: check-out 09.30, riconsegna bici 10.00, treno 10.30, check-in 11.00.\nPreparate gli zaini stanotte, con 15 persone ogni incastro conta. Scrivete /oggi per la tabella."
     }
   ],
+
+  "hype": {
+    "enabled": true,
+    "pool": [
+      "🔥 Gasati gente, siamo ad AMSTERDAM! Godetevi ogni singolo minuto 🇳🇱",
+      "📸 Scattate foto a raffica: questi ricordi tra dieci anni valgono oro!",
+      "🥂 Un brindisi al gruppo più bello del mondo. Salute!",
+      "🚲 Pedalare lungo i canali batte qualsiasi palestra. Tenete la destra! 😎",
+      "💪 Energia al massimo: il viaggio è ADESSO, non sprecate un secondo!",
+      "🌷 Fermatevi un attimo a guardarvi intorno: siete dentro una cartolina.",
+      "😂 Chi è il più imbranato con le bici finora? Votatelo con /mvp!",
+      "🎶 Alzate il volume della cassa, qui si fa festa!",
+      "🧀 Tartufi, formaggi e risate: la dieta ufficiale di questo viaggio.",
+      "❤️ Ricordatevi di ringraziare chi ha organizzato 'sto viaggio pazzesco.",
+      "🌬️ Vento in faccia e sorriso stampato: questa è Amsterdam, baby!",
+      "📍 Perso qualcuno? Scrivete /dove e vi ritrovate. Niente panico!",
+      "🤳 Storia di gruppo OBBLIGATORIA oggi. Taggatevi tutti!",
+      "⚡ Carica! Il momento migliore del viaggio è quello che vivete ora.",
+      "🍟 Patatine olandesi con maionese: provatele, poi mi ringraziate.",
+      "👀 Occhio alle bici quando attraversate: qui comandano loro!",
+      "🏆 Classifica MVP apertissima: chi sta dominando? Scrivete /classifica",
+      "🌈 Gruppo unito, viaggio riuscito. Restate insieme e spaccate!",
+      "🎉 Sorridete: siete nel mezzo di un'avventura che ricorderete per anni!",
+      "📷 Le foto rubate valgono più di quelle in posa. Immortalatevi a vicenda!",
+      "💶 Conti da dividere? Buttate tutto su Splitwise: scrivete /spese",
+      "🚀 Batteria sociale scarica? Un caffè e si riparte, il bello deve venire!",
+      "🦢 Cigni, canali e biciclette: ditemi che non è un sogno.",
+      "🕺 Stasera si balla: chi si tira indietro paga il prossimo giro!",
+      "☕ Pausa stroopwafel: il carburante ufficiale di Amsterdam.",
+      "🧭 Esplorate senza paura, ma restate sempre rintracciabili nel gruppo!"
+    ],
+    "slots": [
+      { "id": "d0.carica", "day": "2026-05-30", "time": "21:00", "text": "🎒 *Domani si vola!* Caricate le valigie e soprattutto l'entusiasmo: Amsterdam ci aspetta! 🇳🇱✈️" },
+
+      { "id": "d1.atterrati", "day": "2026-05-31", "time": "11:30", "text": "🛬 *Atterrati ad Amsterdam!* Si comincia ufficialmente — gasatevi, da qui è tutto vostro! 🇳🇱" },
+      { "id": "d1.s1", "day": "2026-05-31", "time": "14:30" },
+      { "id": "d1.s2", "day": "2026-05-31", "time": "16:30" },
+      { "id": "d1.foto", "day": "2026-05-31", "time": "18:30", "text": "📸 *FOTO DI GRUPPO!* Tutti insieme ORA: primo giorno ad Amsterdam, immortaliamolo. Il più alto in fondo, nessuno fuori dall'inquadratura! 😄" },
+      { "id": "d1.s3", "day": "2026-05-31", "time": "21:00" },
+      { "id": "d1.s4", "day": "2026-05-31", "time": "23:00" },
+
+      { "id": "d2.s1", "day": "2026-06-01", "time": "11:00" },
+      { "id": "d2.s2", "day": "2026-06-01", "time": "13:30" },
+      { "id": "d2.s3", "day": "2026-06-01", "time": "16:00" },
+      { "id": "d2.foto", "day": "2026-06-01", "time": "19:00", "text": "📸 *FOTO DI GRUPPO!* Raduno compatto, sorrisi accesi: si scatta. Oggi sfondo canali 🌉" },
+      { "id": "d2.s4", "day": "2026-06-01", "time": "21:30" },
+      { "id": "d2.s5", "day": "2026-06-01", "time": "23:30" },
+
+      { "id": "d3.s1", "day": "2026-06-02", "time": "11:00" },
+      { "id": "d3.s2", "day": "2026-06-02", "time": "13:30" },
+      { "id": "d3.s3", "day": "2026-06-02", "time": "16:00" },
+      { "id": "d3.foto", "day": "2026-06-02", "time": "21:00", "text": "📸 *FOTO DI GRUPPO — ULTIMA SERA!* Tutti dentro l'inquadratura, nessuno escluso. Questa la stampiamo davvero ❤️" },
+      { "id": "d3.s4", "day": "2026-06-02", "time": "22:00" },
+      { "id": "d3.ultimanotte", "day": "2026-06-02", "time": "23:30", "text": "🌙 Ultima notte ad Amsterdam… fatela valere. Domani si torna, stanotte si vive! 🥳" },
+
+      { "id": "d4.ultimogiro", "day": "2026-06-03", "time": "09:00", "text": "⏳ *Ultimo giro!* Check-out 09.30, poi si chiude in bellezza. Controllate di non dimenticare niente in stanza." },
+      { "id": "d4.fotofinale", "day": "2026-06-03", "time": "11:30", "text": "📸 *Ultimo scatto di gruppo* prima del volo! Grazie a tutti, che viaggio pazzesco 🙌🇳🇱" }
+    ]
+  },
 
   "stops": [
     {
