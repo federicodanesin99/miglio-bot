@@ -1,0 +1,15 @@
+[Unit]
+Description=Riavvio giornaliero dell'Amsterdam Bot a mezzanotte
+
+[Timer]
+# Ogni giorno a mezzanotte (ora locale del NucBox). Imposta il fuso con
+# `sudo timedatectl set-timezone Europe/Amsterdam` perché coincida con l'ora del viaggio.
+OnCalendar=*-*-* 00:00:00
+# Niente recupero al boot: se la macchina era spenta a mezzanotte non vogliamo un
+# riavvio "in ritardo" all'accensione — l'avvio stesso del servizio basta.
+Persistent=false
+# Tolleranza per non far coincidere il riavvio con altri job al secondo esatto.
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

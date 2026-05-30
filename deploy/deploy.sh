@@ -56,9 +56,14 @@ sed -e "s#__USER__#${RUN_USER}#g" \
     -e "s#__NODE__#${NODE_BIN}#g" \
     "$APPDIR/deploy/${SERVICE_NAME}.service" \
   | sudo tee "/etc/systemd/system/${SERVICE_NAME}.service" >/dev/null
+echo "🛠️  Installo il riavvio giornaliero (timer mezzanotte)…"
+sudo cp "$APPDIR/deploy/${SERVICE_NAME}-restart.service" "/etc/systemd/system/${SERVICE_NAME}-restart.service"
+sudo cp "$APPDIR/deploy/${SERVICE_NAME}-restart.timer"   "/etc/systemd/system/${SERVICE_NAME}-restart.timer"
 sudo systemctl daemon-reload
 sudo systemctl enable "${SERVICE_NAME}" >/dev/null
-echo "✅ Servizio installato e abilitato all'avvio."
+sudo systemctl enable --now "${SERVICE_NAME}-restart.timer" >/dev/null
+echo "✅ Servizio + timer di riavvio installati e abilitati all'avvio."
+echo "   Prossimo riavvio:  $(systemctl show -p NextElapseUSecRealtime --value "${SERVICE_NAME}-restart.timer" 2>/dev/null || echo 'vedi: systemctl list-timers')"
 
 # --- 4. sessione WhatsApp / avvio -----------------------------------------
 if [[ -d "$APPDIR/auth" && -n "$(ls -A "$APPDIR/auth" 2>/dev/null)" ]]; then

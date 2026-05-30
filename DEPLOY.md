@@ -96,6 +96,23 @@ journalctl -u amsterdam-bot -f     # log in tempo reale (Ctrl+C per uscire)
 All'avvio l'admin riceve un messaggio WhatsApp "🤖 Amsterdam Bot attivo".
 Il servizio riparte da solo al reboot e in caso di crash (`Restart=on-failure`).
 
+### Riavvio giornaliero (mezzanotte)
+
+`deploy.sh` installa e abilita anche un **timer** che riavvia il bot ogni notte a
+mezzanotte (`amsterdam-bot-restart.timer`). È una rete di sicurezza: ogni riavvio
+ripianifica da zero tutti gli eventi futuri, recuperando eventuali timer persi dopo
+lunghe disconnessioni di rete. È **idempotente** — `state.json` traccia ciò che è già
+partito, quindi un riavvio **non** rimanda messaggi già inviati. All'admin arriva un
+nuovo "🤖 Amsterdam Bot attivo" a ogni riavvio.
+
+```bash
+systemctl list-timers amsterdam-bot-restart.timer   # quando scatta il prossimo
+```
+
+> Usa `try-restart`: se hai **fermato** il servizio a mano (o è in `failed`), il timer
+> **non** lo rianima. L'orario è la **mezzanotte locale** del NucBox: allinea il fuso con
+> `sudo timedatectl set-timezone Europe/Amsterdam` (utile anche per i log).
+
 ---
 
 ## 6. Tenere sveglio il NucBox
@@ -158,4 +175,5 @@ git pull
 | Pairing | `node index.js setup` |
 | Avvia / ferma / riavvia | `sudo systemctl start\|stop\|restart amsterdam-bot` |
 | Stato / log | `systemctl status amsterdam-bot` · `journalctl -u amsterdam-bot -f` |
+| Riavvio giornaliero | `systemctl list-timers amsterdam-bot-restart.timer` |
 | Anteprima eventi | `node index.js next` · `node index.js schedule` |

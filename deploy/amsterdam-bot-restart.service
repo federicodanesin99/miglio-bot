@@ -1,0 +1,8 @@
+[Unit]
+Description=Riavvio pianificato dell'Amsterdam Bot
+
+[Service]
+Type=oneshot
+# try-restart riavvia SOLO se il servizio è già attivo: se lo hai fermato a mano
+# o è in "failed", non lo rianima (non interferisce con la diagnosi).
+ExecStart=/bin/systemctl try-restart amsterdam-bot.service
