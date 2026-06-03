@@ -161,7 +161,10 @@ async function cmdTestCommand() {
   if (!text) { log.error('Uso: node index.js test-command "/oggi"'); process.exit(1); }
   const filterDay = resolveFilterDate();
   const nowOverride = filterDay ? parseDayTime(filterDay, '00:00') : null;
-  const reply = await dispatch(text, makeCtx(cfg, nowOverride));
+  // Inietto mvp (legge votes.json) così i comandi /mvp /classifica /riepilogo
+  // sono testabili anche offline.
+  const mvp = makeMvp({ dailyBudget: cfg.mvp?.dailyBudget, names: cfg.mvp?.names || {} });
+  const reply = await dispatch(text, { ...makeCtx(cfg, nowOverride), mvp });
   const out = typeof reply === 'string' ? reply : (reply?.text || '');
   console.log('\n' + '─'.repeat(60));
   console.log(out);
